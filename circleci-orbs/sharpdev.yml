@@ -1,0 +1,7 @@
+version: 0.1
+
+scripts:
+  get: sudo curl -fLSs https://circle.ci/cli | sudo bash
+  create: circleci orb create sharptools/${SHARP_ARG_1}
+  valid: circleci orb validate ./${SHARP_ARG_1}/orb.yml
+  pub: circleci orb publish ./${SHARP_ARG_1}/orb.yml sharptools/${SHARP_ARG_1}@${SHARP_ARG_2}

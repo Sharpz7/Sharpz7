@@ -1,0 +1,40 @@
+version: 2.1
+description: C Tools
+
+jobs:
+  package:
+    description: Package a C app to ./workspace
+    executor: main
+    parameters:
+      appname:
+        type: string
+
+    steps:
+      - checkout
+
+      - run:
+          name: compile
+          command: |
+            gcc -o "./internal/<<parameters.appname>>" ./src/main.c -lm
+
+
+      - run:
+          name: tar
+          command: |
+            mkdir releases
+            tar -czf ./releases/linux.tar.gz -C ./internal .
+            cp -r ./installs/install.sh ./releases/install.sh
+
+            mkdir ./workspace
+            cp ./.version ./workspace/.version
+            cp -r ./releases ./workspace/releases
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./workspace
+
+executors:
+  main:
+    docker:
+      - image: gcc:8.2

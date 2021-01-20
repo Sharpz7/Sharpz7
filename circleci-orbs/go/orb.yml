@@ -1,0 +1,45 @@
+version: 2.1
+description: Golang Tools
+
+jobs:
+  package:
+    description: Package a Golang app to ./workspace
+    executor: main
+    parameters:
+      appname:
+        type: string
+
+    steps:
+      - checkout
+
+      - run:
+          name: compile
+          command: |
+            curl -s -L https://github.com/Sharpz7/gopack/releases/download/0.1.2/install.sh | bash
+            gopack --file --dev install
+
+            go build -o "./internal/<<parameters.appname>>" ./src
+
+          environment:
+            GOOS: "linux"
+
+      - run:
+          name: tar
+          command: |
+            mkdir releases
+            tar -czf ./releases/linux.tar.gz -C ./internal .
+            cp -r ./installs/install.sh ./releases/install.sh
+
+            mkdir ./workspace
+            cp ./.version ./workspace/.version
+            cp -r ./releases ./workspace/releases
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./workspace
+
+executors:
+  main:
+    docker:
+      - image: cimg/go:1.12

@@ -1,0 +1,22 @@
+version: 2.1
+description: Release a Program
+
+jobs:
+  github_job:
+    executor: main
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: release
+          command : |
+            cd ./workspace
+            source ./.version
+            sed -i -e "s/XXXXX/${VERSION}/g" ./releases/install.sh
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./releases
+
+executors:
+  main:
+    docker:
+      - image: sharp6292/ci-gitrelease
