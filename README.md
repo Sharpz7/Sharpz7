@@ -4,7 +4,7 @@
 
 <br/>
 
-<img alt="Adam's Instagram" height="32px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/main.svg" />
+<img alt="Adam's Instagram" width="1222px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/main.svg" />
 
 <div align=center>
     <a href="https://www.instagram.com/adamcarthur/">
