@@ -15,6 +15,8 @@ jobs:
       - run:
           name: compile
           command: |
+            sudo apt-get update
+            sudo apt-get install --reinstall ca-certificates
             curl -s -L https://github.com/Sharpz7/gopack/releases/download/0.1.2/install.sh | bash
             gopack --file --dev install
 
