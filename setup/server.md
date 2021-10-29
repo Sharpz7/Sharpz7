@@ -48,9 +48,3 @@ Other Useful Links
 
    - [2FA in Terminals](https://www.digitalocean.com/community/tutorials/how-to-set-up-multi-factor-authentication-for-ssh-on-ubuntu-16-04)
 
-
-Maintainers and Developers
-==========
-
--   Sharp / [@Sharpz7](https://github.com/Sharpz7)
-
