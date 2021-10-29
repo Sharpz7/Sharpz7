@@ -6,7 +6,7 @@
 	}
 	@media (prefers-color-scheme: dark) {
 		path {
-			fill: #000;
+			fill: white;
 		}
 	}
 </svg>
