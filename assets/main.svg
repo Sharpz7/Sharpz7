@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="197.76" height="48.64">
-	<text id="dp_text001" transform="matrix(1,0,0,1,29.3184,20.2825)" xml:space="preserve" fill="#484848" font-family="Poppins" font-size="18" font-weight="400" x="0" y="0">Adam McArthur</text>
-	<path id="dp_path002" transform="matrix(1,0,0,1,-571.095,130.961)" fill="#484848" fill-rule="evenodd" stroke="#3a3b3c" stroke-width="1.33333" d="M 571.761,-101.351 L 768.279,-101.351 L 768.279,-99.5813 L 571.761,-99.5813 Z "/>
-	<text id="dp_text003" transform="matrix(1,0,0,1,68.4629,45.4089)" xml:space="preserve" fill="#3a3b3c" font-family="Poppins" font-size="5" font-weight="400" x="0" y="0">Engineering Student</text>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="232.32" height="74.24">
+	<text id="dp_text001" transform="matrix(1,0,0,1,46.0397,31.3398)" xml:space="preserve" fill="#484848" font-family="Poppins" font-size="18" font-weight="400" x="0" y="0">Adam McArthur</text>
+	<path id="dp_path002" transform="matrix(1,0,0,1,-553.829,142.108)" fill="#484848" fill-rule="evenodd" stroke="none" stroke-width="0" d="M 571.761,-101.351 L 768.279,-101.351 L 768.279,-99.5813 L 571.761,-99.5813 Z "/>
+	<text id="dp_text003" transform="matrix(1,0,0,1,89.6136,55.0449)" xml:space="preserve" fill="#3a3b3c" font-family="Poppins" font-size="5" font-weight="400" x="0" y="0">Engineering Student</text>
 </svg>
