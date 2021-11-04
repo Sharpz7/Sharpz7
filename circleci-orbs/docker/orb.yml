@@ -1,0 +1,128 @@
+version: 2.1
+description: Docker Jobs
+
+jobs:
+  build_wait:
+    description: Builds Docker Jobs
+    executor: main
+    parameters:
+      image:
+        type: string
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: "Build"
+          command: |
+            start=`date +%s`
+
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker pull <<parameters.image>> || true
+            docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
+            docker push <<parameters.image>>
+
+            end=`date +%s`
+
+            runtime=$((end-start))
+            result=$(( runtime > 0 ))
+
+            if [[ $result -eq 1 ]] ; then
+                echo "Sleeping for remaining cache time..."
+                left=$((300-runtime))
+                sleep $left
+            else
+                echo "No need to sleep. More than 5 mins has past."
+            fi
+
+  build:
+    description: Builds Docker Jobs
+    executor: main
+    parameters:
+      image:
+        type: string
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: "Build"
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker pull <<parameters.image>> || true
+            docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
+            docker push <<parameters.image>>
+
+  build_multi_wait:
+    description: Builds Docker Jobs
+    executor: main
+    parallelism: 2
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.7
+
+      - run:
+          name: Create Build Files
+          command: |
+            mkdir workspace
+            cd dockerfiles
+            mkdir builds
+            python build.py
+            cd ..
+
+      - run:
+          name: "Build"
+          command: |
+            start=`date +%s`
+
+            sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
+
+            end=`date +%s`
+
+            runtime=$((end-start))
+            result=$(( runtime > 0 ))
+
+            if [[ $result -eq 1 ]] ; then
+                echo "Sleeping for remaining cache time..."
+                left=$((300-runtime))
+                sleep $left
+            else
+                echo "No need to sleep. More than 5 mins has past."
+            fi
+
+  build_multi:
+    description: Builds Docker Jobs
+    executor: main
+    parallelism: 2
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.7
+
+      - run:
+          name: Create Build Files
+          command: |
+            mkdir workspace
+            cd dockerfiles
+            mkdir builds
+            python build.py
+            cd ..
+
+      - run:
+          name: "Build"
+          command: |
+            sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
+
+executors:
+  main:
+    docker:
+      - image: docker:stable

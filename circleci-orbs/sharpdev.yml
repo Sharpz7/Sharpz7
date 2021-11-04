@@ -4,4 +4,8 @@ scripts:
   get: sudo curl -fLSs https://circle.ci/cli | sudo bash
   create: circleci orb create sharptools/$_ARG1
   valid: circleci orb validate ./$_ARG1/orb.yml
-  pub: circleci orb publish ./$_ARG1/orb.yml sharptools/$_ARG1@$_ARG2
+  list: |
+    circleci orb list sharptools
+  pub: |
+    sharpdev valid
+    circleci orb publish ./$_ARG1/orb.yml sharptools/$_ARG1@$_ARG2
