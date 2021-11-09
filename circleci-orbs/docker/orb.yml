@@ -133,9 +133,9 @@ jobs:
       - run:
           name: "Build"
           command: |
-            ls ./workspace
+            ls ./dockerfiles
             docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
-            sh ./workspace/dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
+            sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
 
 executors:
   main:
