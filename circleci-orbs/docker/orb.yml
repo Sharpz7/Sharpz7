@@ -76,6 +76,8 @@ jobs:
             python build.py
             cd ..
 
+            cp -a ./dockerfiles/builds/. ./workspace
+
       - persist_to_workspace:
           root: .
           paths:
@@ -133,7 +135,6 @@ jobs:
       - run:
           name: "Build"
           command: |
-            ls ./dockerfiles
             docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
             sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
 
