@@ -76,8 +76,6 @@ jobs:
             python build.py
             cd ..
 
-            ls ./dockerfiles/builds
-
             cp -a ./dockerfiles/builds/. ./workspace
 
       - persist_to_workspace:
@@ -105,7 +103,7 @@ jobs:
             start=`date +%s`
 
             docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
-            sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
+            sh ./workspace/build-${CIRCLE_NODE_INDEX}.sh
 
             end=`date +%s`
 
@@ -138,7 +136,7 @@ jobs:
           name: "Build"
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
-            sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
+            sh ./workspace/build-${CIRCLE_NODE_INDEX}.sh
 
 executors:
   main:
