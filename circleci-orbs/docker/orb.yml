@@ -76,6 +76,8 @@ jobs:
             python build.py
             cd ..
 
+            ls ./dockerfiles/builds
+
             cp -a ./dockerfiles/builds/. ./workspace
 
       - persist_to_workspace:
