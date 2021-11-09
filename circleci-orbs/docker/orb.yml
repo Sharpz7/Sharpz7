@@ -20,6 +20,7 @@ jobs:
             start=`date +%s`
 
             docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
             docker pull <<parameters.image>> || true
             docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
             docker push <<parameters.image>>
@@ -53,6 +54,7 @@ jobs:
           name: "Build"
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
             docker pull <<parameters.image>> || true
             docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
             docker push <<parameters.image>>
@@ -82,6 +84,7 @@ jobs:
           command: |
             start=`date +%s`
 
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
             sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
 
             end=`date +%s`
@@ -120,6 +123,7 @@ jobs:
       - run:
           name: "Build"
           command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
             sh ./dockerfiles/builds/build-${CIRCLE_NODE_INDEX}.sh
 
 executors:
