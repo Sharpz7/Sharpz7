@@ -1,5 +1,5 @@
 <a href="https://adam.mcaq.me">
-    <img alt="Adam's Website" src="https://files.mcaq.me/b18j4.svg" width=100%/>
+    <img alt="Adam's Website" src="https://files.mcaq.me/ax58x.svg" width=100%/>
 </a>
 
 <br/>
