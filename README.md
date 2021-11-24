@@ -11,7 +11,7 @@
 ## <a href="https://mcaq.me" target="_blank">Adam McArthur</a>
 (Use dark theme to find my socials ;)
 
-<a href="https:/mcaq.me" target="_blank">
+<a href="https://mcaq.me" target="_blank">
     <img align="left" alt="mcaq.me" height="22px" src="https://github.com/Aakarsh-B/trying-repos/blob/master/www.svg" />
 </a>
 <a href="https://www.instagram.com/adamcarthur/">
