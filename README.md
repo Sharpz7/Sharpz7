@@ -1,41 +1,9 @@
 <a href="https://adam.mcaq.me">
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://files.mcaq.me/b18j4.svg">
-    </picture>
-    <picture>
-        <source media="(prefers-color-scheme: light)" srcset="https://files.mcaq.me/6hcr0.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/25423296/163456776-7f95b81a-f1ed-45f7-b7ab-8fa810d529fa.png">
+    <img alt="Shows an illustrated sun in light color mode and a moon with stars in dark color mode." src="https://user-images.githubusercontent.com/25423296/163456779-a8556205-d0a5-45e2-ac17-42d089e3c3f8.png">
     </picture>
 </a>
-
-<br/>
-<br/>
-<br/>
-<br/>
-
-
-## <a href="https://mcaq.me" target="_blank">Adam McArthur</a>
-(Use dark theme to find my socials ;)
-
-<a href="https://mcaq.me" target="_blank">
-    <img align="left" alt="mcaq.me" height="22px" src="https://github.com/Aakarsh-B/trying-repos/blob/master/www.svg" />
-</a>
-<a href="https://www.instagram.com/adamcarthur/">
-    <img align="left" alt="Adam's Instagram" height="22px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/instagram.svg" />
-</a>
-<a href="https://twitter.com/AdamMcArthur5">
-    <img align="left" alt="Adam McArthur | Twitter" height="22px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/twitter.svg" />
-</a>
-<a href="https://www.linkedin.com/in/adammcarthur7/">
-    <img align="left" alt="Adam's LinkedIN" height="22px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/linkedin.svg" />
-</a>
-<a href="mailto:adam@mcaq.me">
-    <img align="left" alt="Adam's Mail" height="22px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/mail.svg" />
-</a>
-<a href="https://www.facebook.com/profile.php?id=100010818066164">
-    <img align="left" alt="Adam's Facebook" height="22px" src="https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/assets/facebook.svg" />
-</a>
-
-<br />
 
 ### Languages and Tools:
 
