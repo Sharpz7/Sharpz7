@@ -1,5 +1,13 @@
 <a href="https://adam.mcaq.me">
     <img alt="Adam's Website" src="https://files.mcaq.me/b18j4.svg" width=100%/>
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/25423296/163456776-7f95b81a-f1ed-45f7-b7ab-8fa810d529fa.png">
+        <img alt="" src="https://files.mcaq.me/b18j4.svg">
+    </picture>
+    <picture>
+        <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/25423296/163456776-7f95b81a-f1ed-45f7-b7ab-8fa810d529fa.png">
+        <img alt="" src="https://files.mcaq.me/6hcr0.png">
+    </picture>
 </a>
 
 <br/>
