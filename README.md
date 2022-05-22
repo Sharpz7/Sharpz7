@@ -1,13 +1,10 @@
 <a href="https://adam.mcaq.me">
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://files.mcaq.me/b18j4.svg">
-        <img alt="" src="https://files.mcaq.me/6hcr0.png">
+        <source media="(prefers-color-scheme: dark)" srcset="https://files.mcaq.me/ak810.png">
+        <img alt="" src="https://files.mcaq.me/9x8x3.png">
     </picture>
 </a>
 
-<br/>
-<br/>
-<br/>
 <br/>
 
 ### Languages and Tools:
@@ -42,10 +39,5 @@
 ### Now Playing 🎧
 
 [![spotify-github-profile](https://spotify-github-profile.vercel.app/api/view?uid=ng3pd97nectxfmgkgj3a50b0r&cover_image=false&theme=default&bar_color_cover=true)](https://github.com/kittinan/spotify-github-profile)
-<br/>
-
----
-
-[![Sharpz7's github activity graph](https://activity-graph.herokuapp.com/graph?username=Sharpz7&theme=xcode)](https://github.com/ashutosh00710/github-readme-activity-graph)
 
 
