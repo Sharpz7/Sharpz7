@@ -1,11 +1,9 @@
 <a href="https://adam.mcaq.me">
     <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://files.mcaq.me/b18j4.svg">
-        <img alt="" src="https://files.mcaq.me/b18j4.svg">
     </picture>
     <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://files.mcaq.me/6hcr0.png">
-        <img alt="" src="https://files.mcaq.me/6hcr0.png">
     </picture>
 </a>
 
