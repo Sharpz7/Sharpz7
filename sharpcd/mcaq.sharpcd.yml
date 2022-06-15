@@ -1,0 +1,73 @@
+version: 1.1
+
+tasks:
+  sharpnet:
+    name: SharpNet
+    type: docker
+    envfile: .env
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/SharpSet/
+    compose: /sharpnet/master/docker-compose.yml
+
+  sharpfiles_task:
+    name: SharpFiles Server
+    envfile: .env
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/SharpSet/
+    compose: /sharpfiles/main/docker-compose.yml
+    depends:
+      - sharpnet
+
+  registery_task:
+    name: Registery Server
+    envfile: .env
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/Sharpz7/
+    compose: /registry/main/docker-compose.yml
+    depends:
+      - sharpnet
+
+  postgres_task:
+    name: Postgres Server
+    envfile: .env
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/Sharpz7/
+    compose: /postgres/main/docker-compose.yml
+    depends:
+      - sharpnet
+
+  vouch_task:
+    name: Vouch Server
+    envfile: .env
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/Sharpz7/
+    compose: /vouch/main/docker-compose.yml
+    depends:
+      - sharpnet
+
+  shlink_task:
+    name: Shlink Server
+    envfile: .env
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/Sharpz7/
+    compose: /shlink/main/docker-compose.yml
+    depends:
+      - sharpnet
+      - postgres_task
+
+  codeserver_task:
+    name: Code Server
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://173.212.252.82:5666
+    giturl: https://raw.githubusercontent.com/Sharpz7/
+    compose: /codeserver/main/docker-compose.yml
+    depends:
+      - sharpnet
+      - vouch_task

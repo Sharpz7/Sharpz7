@@ -15,10 +15,7 @@ jobs:
       - run:
           name: compile
           command: |
-            sudo apt-get update
-            sudo apt-get install --reinstall ca-certificates
-            curl -s -L https://github.com/Sharpz7/gopack/releases/download/1.0/install.sh | bash
-            gopack --file --dev install
+            go mod tidy
 
             go build -o "./internal/<<parameters.appname>>" ./src
 
@@ -44,4 +41,4 @@ jobs:
 executors:
   main:
     docker:
-      - image: cimg/go:1.12
+      - image: cimg/go:1.18

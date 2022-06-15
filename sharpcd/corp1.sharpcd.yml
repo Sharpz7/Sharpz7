@@ -1,0 +1,87 @@
+version: 1.1
+
+tasks:
+  sharpnet_corp:
+    name: SharpNet Corp
+    type: docker
+    envfile: .env2
+    sharpurl: https://corporate1.mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/SharpSet/
+    compose: /sharpnet/master/docker-compose.yml
+
+  ruairidh_task:
+    name: ruairidh Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://62.171.151.39:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /ruairidh/main/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  matthew_task:
+    name: Matthew Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://62.171.151.39:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /matthew/main/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  amk_task:
+    name: AMK Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://62.171.151.39:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /amk/master/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  mcadesigns_task:
+    name: McADesigns Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://62.171.151.39:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /mcadesigns/main/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  strathloop_task:
+    name: Strathloop Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://corporate1.mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /strathloop/main/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  ewan_task:
+    name: Ewans Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://62.171.151.39:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /ewan/main/docker-compose.yml
+    depends:
+      - sharpnet_corp
+
+  adam_task:
+    name: Adam Website
+    envfile: .env
+    registry: docker.mcaq.me
+    type: docker
+    sharpurl: https://mcaq.me:5666
+    giturl: https://raw.githubusercontent.com/McA-Designs/
+    compose: /adam.mcaq.me/main/docker-compose.yml
+    depends:
+      - sharpnet_corp

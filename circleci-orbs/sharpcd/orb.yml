@@ -9,7 +9,7 @@ commands:
       - run:
           name: "Install SharpCD"
           command: |
-            wget https://github.com/Sharpz7/sharpcd/releases/download/3.3/linux.tar.gz
+            wget https://github.com/Sharpz7/sharpcd/releases/download/3.7/linux.tar.gz
             sudo tar -C /usr/local/bin/ -zxvf linux.tar.gz
             rm -r linux.tar.gz
 

@@ -24,7 +24,7 @@ jobs:
             start=`date +%s`
 
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me || true
             docker pull <<parameters.image>> || true
             docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
             docker push <<parameters.image>>
@@ -32,7 +32,7 @@ jobs:
             end=`date +%s`
 
             runtime=$((end-start))
-            result=$(( runtime > 0 ))
+            result=$(( runtime < 300 ))
 
             if [[ $result -eq 1 ]] ; then
                 echo "Sleeping for remaining cache time..."
@@ -62,7 +62,7 @@ jobs:
           name: "Build"
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me || true
             docker pull <<parameters.image>> || true
             docker build --cache-from <<parameters.image>> -t <<parameters.image>> .
             docker push <<parameters.image>>
@@ -70,7 +70,6 @@ jobs:
   create_multi:
     description: Creates Scripts
     executor: multi-python
-    parallelism: 2
 
     steps:
       - checkout
@@ -113,13 +112,13 @@ jobs:
           command: |
             start=`date +%s`
 
-            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me || true
             sh ./workspace/build-${CIRCLE_NODE_INDEX}.sh
 
             end=`date +%s`
 
             runtime=$((end-start))
-            result=$(( runtime > 0 ))
+            result=$(( runtime < 300 ))
 
             if [[ $result -eq 1 ]] ; then
                 echo "Sleeping for remaining cache time..."
@@ -149,7 +148,31 @@ jobs:
       - run:
           name: "Build"
           command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me || true
+            sh ./workspace/build-${CIRCLE_NODE_INDEX}.sh
+
+
+  build_multi_large:
+    description: Builds Docker Jobs
+    executor: main
+    parallelism: 30
+
+    resource_class: large
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.7
+          docker_layer_caching: true
+
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: "Build"
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS https://docker.mcaq.me || true
             sh ./workspace/build-${CIRCLE_NODE_INDEX}.sh
 
 executors:

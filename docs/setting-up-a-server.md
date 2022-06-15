@@ -1,6 +1,5 @@
-Sharp - Things to get started on a new Server
+Things to get started on a new Server
 ============================================
-
 
 SSH User Creation
 ============
@@ -36,11 +35,6 @@ Other Useful commands
 > \$ sudo nano /etc/ssh/sshd_config
 
 > \$ sudo systemctl restart ssh
-
-Scripts
-=============
-
-Contains info on how to install docker and docker-compose
 
 
 Other Useful Links
