@@ -1,8 +1,6 @@
-Things to get started on a new Server
-============================================
+## Things to get started on a new Server
 
-SSH User Creation
-============
+## SSH User Creation
 
 > \$ adduser sharp
 
@@ -27,8 +25,7 @@ Add your key here
 > \$ chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
 
 
-Other Useful commands
-============
+## Other Useful commands
 
 > \$ passwd
 
@@ -37,8 +34,7 @@ Other Useful commands
 > \$ sudo systemctl restart ssh
 
 
-Other Useful Links
-============
+## Other Useful Links
 
    - [2FA in Terminals](https://www.digitalocean.com/community/tutorials/how-to-set-up-multi-factor-authentication-for-ssh-on-ubuntu-16-04)
 

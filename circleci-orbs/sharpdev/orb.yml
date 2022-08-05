@@ -1,0 +1,15 @@
+version: 2.1
+description: SharpDev Services
+
+commands:
+  install:
+    steps:
+      - checkout
+
+      - run:
+          name: "Install SharpDev"
+          command: |
+            wget https://github.com/Sharpz7/sharpdev/releases/download/1.6/linux.tar.gz
+            sudo tar -C /usr/local/bin/ -zxvf linux.tar.gz
+            rm -r linux.tar.gz
+            chmod u+x /usr/local/bin/sharpdev
