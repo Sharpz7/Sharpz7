@@ -1,17 +1,26 @@
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: ${DOMAIN_NAME}
-  namespace: default
+  name: traefik-ingress
+  namespace: kube-system
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+
 spec:
-  secretName: ${DOMAIN_NAME}-tls
-  issuerRef:
-    name: letsencrypt-production
-    kind: ClusterIssuer
-  dnsNames:
-    - "*.${DOMAIN}"
-    - "${DOMAIN}"
+  rules:
+    - host: traefik.${DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: traefik-dashboard
+                port:
+                  number: 9000
+
+      tls:
+        - hosts:
+            - traefik.${DOMAIN}
+          secretName: ${DOMAIN_NAME}-tls
