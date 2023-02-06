@@ -2,7 +2,7 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
   name: traefik
-  namespace: default
+  namespace: kube-system
 spec:
   valuesContent: |-
     logs:
