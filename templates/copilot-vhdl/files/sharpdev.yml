@@ -1,9 +1,13 @@
 version: 1
 
 scripts:
-  run: |
-    ghdl -a test.vhd
-    ghdl -a test_TB.vhd
+  test: |
+    ghdl -a test/test.vhd
+    ghdl -a test/test_TB.vhd
     ghdl -e andorinvertTB
-    ghdl -r andorinvertTB --wave="test.ghw"
+    ghdl -r andorinvertTB --wave="test/test.ghw"
+
+  # Add your commands here as you expand the code
+  run: |
+    ghdl -a src/start.vhd
 
