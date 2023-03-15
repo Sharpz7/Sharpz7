@@ -1,0 +1,11 @@
+version: 1
+
+scripts:
+  run: |
+    cd design_project
+    ghdl -a src/test.vhd
+    ghdl -a src/test_TB.vhd
+    ghdl -e test_TB
+    ghdl -r test_TB --wave="test.ghw"
+
+
