@@ -2,6 +2,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 
 entity andorinvertTB is
 end;
@@ -22,13 +23,13 @@ begin
     stimuli: process
     begin
         A <= '0'; B <= '0'; C <= '0'; D <= '0'; wait for 10 NS;
-        report "F = " & to_string(F) severity note;
+        report "F = " & std_logic'image(F) severity note;
         A <= '0'; B <= '1'; C <= '0'; D <= '1'; wait for 10 NS;
-        report "F = " & to_string(F) severity note;
+        report "F = " & std_logic'image(F) severity note;
         A <= '1'; B <= '0'; C <= '1'; D <= '0'; wait for 10 NS;
-        report "F = " & to_string(F) severity note;
+        report "F = " & std_logic'image(F) severity note;
         A <= '1'; B <= '1'; C <= '1'; D <= '1'; wait for 10 NS;
-        report "F = " & to_string(F) severity note;
+        report "F = " & std_logic'image(F) severity note;
         wait;
     end process;
 
