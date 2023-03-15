@@ -2,12 +2,15 @@ version: 1
 
 scripts:
   test: |
-    ghdl -a test/test.vhd
-    ghdl -a test/test_TB.vhd
+    # cd = change directory
+    cd ./test
+    ghdl -a test.vhd
+    ghdl -a test_TB.vhd
     ghdl -e andorinvertTB
-    ghdl -r andorinvertTB --wave="test/test.ghw"
+    ghdl -r andorinvertTB --wave="wave.ghw"
 
   # Add your commands here as you expand the code
   run: |
-    ghdl -a src/start.vhd
+    cd ./src
+    ghdl -a start.vhd
 
