@@ -20,7 +20,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa &&\
 RUN wget https://dl.google.com/go/go1.20.2.linux-amd64.tar.gz && \
     tar -xvf go1.20.2.linux-amd64.tar.gz && \
     mv go /usr/local && \
-    rm go1.20.2.linux-amd64.tar.gz
+    rm go1.20.2.linux-amd64.tar.gz && \
     # Install go go1.19.7
     go install golang.org/dl/go1.19.7@latest && \
     go1.19.7 download && \
