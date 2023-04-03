@@ -1,8 +1,10 @@
 ## Things to get started on a new Server
 
+TODO: IMPROVE THIS!!!!!!!!!!!!!!!!!!!!
+
 ## SSH User Creation
 
-> \$ adduser sharp
+> \$ adduser adam
 
 > \$ apt install sudo
 
@@ -12,9 +14,9 @@
 
 Add This line:
 
-`sharp   ALL=(ALL:ALL) ALL`
+`adam   ALL=(ALL:ALL) ALL`
 
-> \$ su sharp
+> \$ su adam
 
 > \$ mkdir ~/.ssh
 
@@ -34,7 +36,20 @@ Add your key here
 > \$ sudo systemctl restart ssh
 
 
+## Use ufw to manage firewall
+
+Install ufw
+
+> \$ sudo apt install ufw
+
+> \$ sudo ufw allow 22/tcp
+> \$ sudo ufw allow http
+> \$ sudo ufw allow https
+
+
 ## Other Useful Links
 
    - [2FA in Terminals](https://www.digitalocean.com/community/tutorials/how-to-set-up-multi-factor-authentication-for-ssh-on-ubuntu-16-04)
+
+
 

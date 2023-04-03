@@ -13,5 +13,5 @@ scripts:
     export name=$_ARG1
     export version=$_ARG2
 
-    sharpdev valid $name
+    sharpdev -ss valid $name
     circleci orb publish ./$name/orb.yml sharptools/$name@$version

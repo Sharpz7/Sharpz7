@@ -1,0 +1,14 @@
+version: 1
+
+scripts:
+  armada-image: |
+    docker build -t armada-image -f dockerfiles/armada.Dockerfile .
+    docker tag armada-image sharp6292/armada-image
+    docker push sharp6292/armada-image
+
+  quick-image: |
+    docker build -t quick-armada-image -f dockerfiles/quick.Dockerfile .
+    docker tag quick-armada-image sharp6292/quick-armada-image
+    docker push sharp6292/quick-armada-image
+
+
