@@ -21,7 +21,7 @@ metadata:
   name: kimai-ingress
 spec:
   rules:
-    - host: kimai.${DOMAIN}
+    - host: timesheet.${DOMAIN}
       http:
         paths:
         - path: /
