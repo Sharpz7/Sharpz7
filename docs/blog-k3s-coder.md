@@ -165,3 +165,13 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.ym
 | envsubst \
 | helm upgrade coder coder-v2/coder --namespace coder --values -
 ```
+
+# KimAI Install
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/pv.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/sql.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/main.yaml
+```

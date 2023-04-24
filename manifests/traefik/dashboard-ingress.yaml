@@ -18,3 +18,8 @@ spec:
                 name: traefik-dashboard
                 port:
                   number: 9000
+
+tls:
+  - hosts:
+      - traefik.${DOMAIN}
+    secretName: ${DOMAIN_NAME}-tls

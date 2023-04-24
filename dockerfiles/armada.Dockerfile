@@ -3,6 +3,7 @@ FROM codercom/enterprise-base:ubuntu
 ENV GOROOT /usr/local/go
 ENV GOPATH /home/coder/go
 ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
+ENV PATH $HOME/.local/bin:$PATH
 
 ENV DEBIAN_FRONTEND noninteractive
 
