@@ -193,4 +193,12 @@ helm repo add robjuz https://robjuz.github.io/helm-charts/
 wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/kimai.yaml \
 | envsubst \
 | helm install kimai robjuz/kimai2 --namespace default --values -
+
+# for upgrade
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/kimai.yaml \
+| envsubst \
+| helm upgrade kimai robjuz/kimai2 --namespace default --values -
+
+# for delete
+helm delete kimai
 ```

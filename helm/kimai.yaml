@@ -16,7 +16,7 @@ ingress:
   ##
   certManager: true
 
-  hostname: kimai.${DOMAIN}
+  hostname: timesheet.${DOMAIN}
   ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
