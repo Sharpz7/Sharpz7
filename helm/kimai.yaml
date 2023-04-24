@@ -28,23 +28,3 @@ ingress:
 
   secrets:
     - ${DOMAIN}-tls
-
-
-## MariaDB chart configuration
-## ref: https://github.com/bitnami/charts/blob/master/bitnami/mariadb/values.yaml
-##
-mariadb:
-  enabled: true
-  architecture: standalone
-  auth:
-    rootPassword: ${SQL_PASS}
-    database: kimai
-    username: ${SQL_USER}
-    password: ${SQL_PASS}
-  primary:
-    persistence:
-      enabled: true
-      storageClass:
-      accessModes:
-        - ReadWriteOnce
-      size: 4Gi
