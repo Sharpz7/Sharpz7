@@ -182,3 +182,15 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kim
 | envsubst \
 | kubectl apply -f -
 ```
+
+kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/main.yaml
+kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/sql.yaml
+kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/pv.yaml
+
+```bash
+helm repo add robjuz https://robjuz.github.io/helm-charts/
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/kimai.yaml \
+| envsubst \
+| helm install kimai robjuz/kimai2 --namespace default --values -
+```

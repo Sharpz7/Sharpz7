@@ -1,0 +1,50 @@
+## @param kimaiAppSecret Secret used to encrypt session cookies (users will be logged out if you change it)
+##
+kimaiAppSecret: ${SQL_PASS}
+## @param kimaiAdminEmail Email for the superadmin account
+##
+kimaiAdminEmail: admin@kimai.local
+## @param kimaiAdminPassword Password for the superadmin account
+##
+kimaiAdminPassword: ${SQL_PASS}
+
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for Kimai
+  ##
+  enabled: true
+  ## @param ingress.certManager Add the corresponding annotations for cert-manager integration
+  ##
+  certManager: true
+
+  hostname: kimai.${DOMAIN}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
+  ## You can:
+  ##   - Use the `ingress.secrets` parameter to create this TLS secret
+  ##   - Relay on cert-manager to create it by setting `ingress.certManager=true`
+  ##   - Relay on Helm to create self-signed certificates by setting `ingress.tls=true` and `ingress.certManager=false`
+  ##
+  tls: true
+
+  secrets:
+    - ${DOMAIN}-tls
+
+
+## MariaDB chart configuration
+## ref: https://github.com/bitnami/charts/blob/master/bitnami/mariadb/values.yaml
+##
+mariadb:
+  enabled: true
+  architecture: standalone
+  auth:
+    rootPassword: ${SQL_PASS}
+    database: kimai
+    username: ${SQL_USER}
+    password: ${SQL_PASS}
+  primary:
+    persistence:
+      enabled: true
+      storageClass:
+      accessModes:
+        - ReadWriteOnce
+      size: 4Gi
