@@ -68,10 +68,3 @@ spec:
             value: "localhost,timesheet.${DOMAIN},kimai.local"
         ports:
         - containerPort: 8001
-        resources:
-          requests:
-            cpu: "850m"
-            memory: "1200Mi"
-          limits:
-            cpu: "1000m"
-            memory: "1500Mi"
