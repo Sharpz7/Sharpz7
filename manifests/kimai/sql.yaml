@@ -37,7 +37,7 @@ spec:
         env: prod
     spec:
       containers:
-      - image: mysql:5.7.34
+      - image: mysql:8.0
         name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
