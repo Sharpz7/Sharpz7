@@ -13,9 +13,6 @@ K3s is a lightweight Kubernetes distribution that is easy to install and manage.
 export DOMAIN=mcaq.me
 export DOMAIN_NAME=mcaq-me
 export EMAIL=adam.mcarthur62@gmail.com
-
-export SQL_USER=mysql
-export SQL_PASS=mysql
 ```
 
 ```bash
@@ -172,20 +169,9 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.ym
 # KimAI Install
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/pv.yaml
-
-wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/sql.yaml \
-| envsubst \
-| kubectl apply -f -
-
-wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/main.yaml \
-| envsubst \
-| kubectl apply -f -
+export KIMAI_USER=adam.mcarthur62@gmail.com
+export KIMAI_PASS=<your_password>
 ```
-
-kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/main.yaml
-kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/sql.yaml
-kubectl delete -f https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/kimai/pv.yaml
 
 ```bash
 helm repo add robjuz https://robjuz.github.io/helm-charts/

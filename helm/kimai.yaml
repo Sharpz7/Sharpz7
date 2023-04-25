@@ -1,12 +1,12 @@
 ## @param kimaiAppSecret Secret used to encrypt session cookies (users will be logged out if you change it)
 ##
-kimaiAppSecret: ${SQL_PASS}
+kimaiAppSecret: ${KIMAI_PASS}
 ## @param kimaiAdminEmail Email for the superadmin account
 ##
-kimaiAdminEmail: admin@kimai.local
+kimaiAdminEmail: ${KIMAI_USER}
 ## @param kimaiAdminPassword Password for the superadmin account
 ##
-kimaiAdminPassword: ${SQL_PASS}
+kimaiAdminPassword: ${KIMAI_PASS}
 
 ingress:
   ## @param ingress.enabled Enable ingress record generation for Kimai
@@ -28,3 +28,7 @@ ingress:
 
   secrets:
     - ${DOMAIN}-tls
+
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
