@@ -42,9 +42,14 @@ Install ufw
 
 > \$ sudo apt install ufw
 
+Add ssh ports
 > \$ sudo ufw allow 22/tcp
+
 > \$ sudo ufw allow http
 > \$ sudo ufw allow https
+
+For k3s
+> \$ sudo ufw allow 6443/tcp
 
 
 ## Other Useful Links

@@ -35,8 +35,10 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 ```bash
 curl -sfL https://get.k3s.io | sh -s server \
 --cluster-init \
---flannel-backend=wireguard \
---write-kubeconfig-mode 600
+--flannel-backend=wireguard-native \
+--flannel-iface=wg1 \
+--write-kubeconfig-mode 600 \
+--tls-san ${DOMAIN}
 ```
 
 ```bash
@@ -191,16 +193,24 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/kimai.ya
 helm delete kimai
 ```
 
+## Add new user
+
+```bash
+wget -kubectl exec --stdin --tty POD_NAME -- /bin/bash
+
+bin/console kimai:user:create username admin@example.com ROLE_SUPER_ADMIN
+```
+
+```sql
+
 # Docker Registry Install
 
 ```bash
+sudo apt-get install apache2-utils
+
 export DOMAIN=mcaq.me
 export DOMAIN_NAME=mcaq-me
-```
-
-```bash
-sudo apt-get install apache2-utils
-AUTH_SECRET=$(htpasswd -nbB <user> <pass>)
+export AUTH_SECRET=$(htpasswd -nbB <user> <pass>)
 ```
 
 ```bash
@@ -209,4 +219,9 @@ helm repo add twuni https://helm.twun.io
 wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-registry.yaml \
 | envsubst \
 | helm install docker-registry twuni/docker-registry --namespace default --values -
+
+# for upgrade
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-registry.yaml \
+| envsubst \
+| helm upgrade docker-registry twuni/docker-registry --namespace default --values -
 ```
