@@ -1,0 +1,13 @@
+ingress:
+  enabled: true
+  className: traefik
+  path: /
+  hosts:
+    - docker.mcaq.me
+  tls:
+    - secretName: ${DOMAIN}-tls
+      hosts:
+        - docker.${DOMAIN}
+
+secrets:
+  htpasswd: ${AUTH_SECRET}

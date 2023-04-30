@@ -169,6 +169,8 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.ym
 # KimAI Install
 
 ```bash
+export DOMAIN=mcaq.me
+export DOMAIN_NAME=mcaq-me
 export KIMAI_USER=adam.mcarthur62@gmail.com
 export KIMAI_PASS=<your_password>
 ```
@@ -187,4 +189,24 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/kimai.ya
 
 # for delete
 helm delete kimai
+```
+
+# Docker Registry Install
+
+```bash
+export DOMAIN=mcaq.me
+export DOMAIN_NAME=mcaq-me
+```
+
+```bash
+sudo apt-get install apache2-utils
+AUTH_SECRET=$(htpasswd -nbB <user> <pass>)
+```
+
+```bash
+helm repo add twuni https://helm.twun.io
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-registry.yaml \
+| envsubst \
+| helm install docker-registry twuni/docker-registry --namespace default --values -
 ```
