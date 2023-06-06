@@ -20,7 +20,7 @@ coder:
 
     # OAuth
     - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
-      value: true
+      value: "true"
     - name: CODER_OAUTH2_GITHUB_ALLOWED_ORGS
       value: "Sharpz7"
     - name: CODER_OAUTH2_GITHUB_CLIENT_ID
@@ -28,7 +28,7 @@ coder:
     - name: CODER_OAUTH2_GITHUB_CLIENT_SECRET
       value: "${CODER_SECRET}"
     - name: CODER_OAUTH2_GITHUB_ALLOW_EVERYONE
-      value: true
+      value: "true"
 
     # Git Auth
     - name: CODER_GITAUTH_0_ID
