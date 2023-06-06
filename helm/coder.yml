@@ -34,6 +34,7 @@ coder:
     - name: CODER_GITAUTH_0_ID
       value: primary-github
     - name: CODER_GITAUTH_0_TYPE
+      value: github
     - name: CODER_GITAUTH_0_CLIENT_ID
       value: "${CODER_GIT_ID}"
     - name: CODER_GITAUTH_0_CLIENT_SECRET
