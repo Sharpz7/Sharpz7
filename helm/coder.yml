@@ -27,6 +27,8 @@ coder:
       value: "${CODER_SECRET}"
     - name: CODER_OAUTH2_GITHUB_ALLOW_EVERYONE
       value: "true"
+    - name: CODER_OAUTH2_GITHUB_ALLOWED_ORGS
+      value: SharpSet
 
     # Git Auth
     - name: CODER_GITAUTH_0_ID
