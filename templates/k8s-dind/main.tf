@@ -155,7 +155,7 @@ resource "coder_agent" "main" {
     set -e
     sudo dockerd -H tcp://127.0.0.1:2375 &
 
-    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.12.0 | tee code-server-install.log
+    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.13.0 | tee code-server-install.log
     sleep 5
 
     if [ -n "$DOTFILES_URI" ]; then
