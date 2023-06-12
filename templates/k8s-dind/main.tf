@@ -78,6 +78,24 @@ data "coder_parameter" "image" {
   }    
 }
 
+data "coder_parameter" "node" {
+  name        = "Cluster Node"
+  type        = "string"
+  description = "Which Node should the Pod be placed on?"
+  mutable     = true
+  default     = "vmi1031871.contaboserver.net"
+  icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
+
+  option {
+    name = "10vCPU, 60GB RAM"
+    value = "vmi1031871.contaboserver.net"
+  }
+  option {
+    name = "4vCPU, 8GB RAM"
+    value = "vmi261078.contaboserver.net"
+  }    
+}
+
 data "coder_parameter" "dotfiles_uri" {
   name         = "dotfiles_uri"
   display_name = "dotfiles URI"
@@ -187,6 +205,9 @@ resource "kubernetes_pod" "main" {
     }
   }
   spec {
+    node_selector = {
+      "kubernetes.io/hostname" = "${data.coder_parameter.node.value}"
+    }
     container {
       name    = "dev"
       image   = data.coder_parameter.image.value
@@ -225,8 +246,8 @@ resource "kubernetes_pod" "main" {
 
       resources {
         requests = {
-          "cpu"    = "${data.coder_parameter.cpu.value}"
-          "memory" = "${data.coder_parameter.memory.value}Gi"
+          "cpu"    = "1"
+          "memory" = "1Gi"
         }
         limits = {
           "cpu"    = "${data.coder_parameter.cpu.value}"
