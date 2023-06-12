@@ -2,77 +2,93 @@ terraform {
   required_providers {
     coder = {
       source  = "coder/coder"
-      version = "0.6.6"
+      version = "~> 0.7.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.12.1"
+      version = "~> 2.18"
     }
   }
 }
 
 locals {
-  use_kubeconfig = false
   namespace      = "coder"
+  use_kubeconfig = false
 }
 
-variable "cpu" {
-  description = "CPU (__ cores)"
-  default     = 2
+provider "coder" {
+  feature_use_managed_variables = true
+}
+
+data "coder_parameter" "cpu" {
+  name        = "CPU cores"
+  type        = "number"
+  description = "CPU cores - be sure the cluster nodes have the capacity"
+  icon        = "https://png.pngtree.com/png-clipart/20191122/original/pngtree-processor-icon-png-image_5165793.jpg"
   validation {
-    condition = contains([
-      "1",
-      "2",
-      "4",
-      "6",
-      "8",
-      "10",
-    ], var.cpu)
-    error_message = "Invalid cpu!"
+    min       = 1
+    max       = 10
   }
+  mutable     = true
+  default     = 2
 }
 
-variable "memory" {
-  description = "Memory (__ GB)"
+data "coder_parameter" "memory" {
+  name        = "Memory (__ GB)"
+  type        = "number"
+  description = "Be sure the cluster nodes have the capacity"
+  icon        = "https://www.vhv.rs/dpng/d/33-338595_random-access-memory-logo-hd-png-download.png"
+  validation {
+    min       = 1
+    max       = 40
+  }
+  mutable     = true
   default     = 4
+}
+
+data "coder_parameter" "disk_size" {
+  name        = "PVC storage size"
+  type        = "number"
+  description = "Number of GB of storage"
+  icon        = "https://www.pngall.com/wp-content/uploads/5/Database-Storage-PNG-Clipart.png"
   validation {
-    condition = contains([
-      "1",
-      "2",
-      "4",
-      "8",
-      "16",
-      "32",
-    ], var.memory)
-    error_message = "Invalid memory!"
-}
+    min       = 10
+    max       = 50
+    monotonic = "increasing"
+  }
+  mutable     = false
+  default     = 10
 }
 
-variable "disk_size" {
-  description = "Disk size (__ GB)"
-  default     = 50
+data "coder_parameter" "image" {
+  name        = "Container Image"
+  type        = "string"
+  description = "What container image and language do you want?"
+  mutable     = true
+  default     = "sharp6292/armada-image:latest"
+  icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
+
+  option {
+    name = "Armada"
+    value = "sharp6292/armada-image:latest"
+  }
+  option {
+    name = "Alberta/ML"
+    value = "sharp6292/alberta-dev:latest"
+  }    
 }
 
-variable "image" {
-  description = <<-EOF
-  Container images from coder-com
-  EOF
-  default = "codercom/enterprise-base:ubuntu"
-  validation {
-    condition = contains([
-      "codercom/enterprise-base:ubuntu",
-      "sharp6292/armada-image:latest"
-    ], var.image)
-    error_message = "Invalid image!"
-}
-}
-
-variable "dotfiles_uri" {
-  description = <<-EOF
+data "coder_parameter" "dotfiles_uri" {
+  name         = "dotfiles_uri"
+  display_name = "dotfiles URI"
+  description  = <<-EOF
   Dotfiles repo URI (optional)
+
   see https://dotfiles.github.io
   EOF
-  default     = ""
+  default      = "https://github.com/Sharpz7/dotfiles"
+  type         = "string"
+  mutable      = true
 }
 
 provider "kubernetes" {
@@ -81,7 +97,6 @@ provider "kubernetes" {
 }
 
 data "coder_workspace" "me" {}
-
 
 resource "kubernetes_persistent_volume_claim" "home" {
   metadata {
@@ -98,52 +113,37 @@ resource "kubernetes_persistent_volume_claim" "home" {
       "com.coder.user.id"        = data.coder_workspace.me.owner_id
       "com.coder.user.username"  = data.coder_workspace.me.owner
     }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace.me.owner_email
+    }
   }
   wait_until_bound = false
   spec {
     access_modes = ["ReadWriteOnce"]
     resources {
       requests = {
-        storage = "${var.disk_size}Gi"
+        storage = "${data.coder_parameter.disk_size.value}Gi"
       }
     }
   }
 }
 
 resource "coder_agent" "main" {
-  os   = "linux"
   arch = "amd64"
-  dir  = "/home/coder"
-
-  env = {
-    GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
-    GIT_COMMITTER_NAME  = "${data.coder_workspace.me.owner}"
-    GIT_AUTHOR_EMAIL    = "${data.coder_workspace.me.owner_email}"
-    GIT_COMMITTER_EMAIL = "${data.coder_workspace.me.owner_email}"
-  }
+  os   = "linux"
+  env  = { "DOTFILES_URI" = data.coder_parameter.dotfiles_uri.value != "" ? data.coder_parameter.dotfiles_uri.value : null }
 
   startup_script = <<EOT
-    #!/bin/bash
-    # Run Docker in Background
+    set -e
     sudo dockerd -H tcp://127.0.0.1:2375 &
 
-    # home folder can be empty, so copying default bash settings
-    if [ ! -f ~/.profile ]; then
-      cp /etc/skel/.profile $HOME
-    fi
-    if [ ! -f ~/.bashrc ]; then
-      cp /etc/skel/.bashrc $HOME
-    fi
-
-    # install and start code-server
-    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.9.1 | tee code-server-install.log
-
+    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.12.0 | tee code-server-install.log
     sleep 5
 
-    # Get Dotfiles
-    ${var.dotfiles_uri != "" ? "git clone ${var.dotfiles_uri}.git" : ""}
-    ${var.dotfiles_uri != "" ? "cd dotfiles && chmod +x install" : ""}
-    ${var.dotfiles_uri != "" ? "./install" : ""}
+    if [ -n "$DOTFILES_URI" ]; then
+      echo "Installing dotfiles from $DOTFILES_URI"
+      coder dotfiles -y "$DOTFILES_URI"
+    fi
 
     code-server --auth none --port 13337 | tee code-server-install.log &
   EOT
@@ -174,12 +174,22 @@ resource "kubernetes_pod" "main" {
     labels = {
       "app.kubernetes.io/name"     = "coder-workspace"
       "app.kubernetes.io/instance" = "coder-workspace-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
+      "app.kubernetes.io/part-of"  = "coder"
+      // Coder specific labels.
+      "com.coder.resource"       = "true"
+      "com.coder.workspace.id"   = data.coder_workspace.me.id
+      "com.coder.workspace.name" = data.coder_workspace.me.name
+      "com.coder.user.id"        = data.coder_workspace.me.owner_id
+      "com.coder.user.username"  = data.coder_workspace.me.owner
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace.me.owner_email
     }
   }
   spec {
     container {
       name    = "dev"
-      image   = var.image
+      image   = data.coder_parameter.image.value
       command = ["sh", "-c", coder_agent.main.init_script]
       security_context {
         privileged = true
@@ -215,12 +225,12 @@ resource "kubernetes_pod" "main" {
 
       resources {
         requests = {
-          cpu    = "500m"
-          memory = "500Mi"
+          "cpu"    = "${data.coder_parameter.cpu.value}"
+          "memory" = "${data.coder_parameter.memory.value}Gi"
         }
         limits = {
-          cpu    = "${var.cpu}"
-          memory = "${var.memory}G"
+          "cpu"    = "${data.coder_parameter.cpu.value}"
+          "memory" = "${data.coder_parameter.memory.value}Gi"
         }
       }
     }
@@ -280,26 +290,5 @@ resource "kubernetes_pod" "main" {
         }
       }
     }
-  }
-}
-
-resource "coder_metadata" "workspace_info" {
-  count       = data.coder_workspace.me.start_count
-  resource_id = kubernetes_pod.main[0].id
-  item {
-    key   = "CPU"
-    value = "${var.cpu} cores"
-  }
-  item {
-    key   = "memory"
-    value = "${var.memory}GB"
-  }
-  item {
-    key   = "image"
-    value = "docker.io/${var.image}"
-  }
-  item {
-    key   = "disk"
-    value = "${var.disk_size}GiB"
   }
 }
