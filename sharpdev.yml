@@ -1,8 +1,18 @@
 version: 1
 
+envfile: .env
+
 scripts:
+  login: |
+    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
   armada: |
-    docker build -t armada-image -f dockerfiles/armada.Dockerfile .
+    docker build --network=host -t armada-image -f dockerfiles/armada.Dockerfile .
     docker tag armada-image sharp6292/armada-image
     docker push sharp6292/armada-image
+
+  alberta: |
+    docker build --network=host -t alberta-dev -f dockerfiles/alberta.Dockerfile .
+    docker tag alberta-dev sharp6292/alberta-dev
+    docker push sharp6292/alberta-dev
 
