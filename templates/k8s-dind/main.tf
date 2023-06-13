@@ -69,7 +69,7 @@ data "coder_parameter" "image" {
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
-    name = "sharp6292/coder-base:latest"
+    name = "Armada"
     value = "sharp6292/coder-base:latest"
   }
 }
@@ -103,6 +103,30 @@ data "coder_parameter" "dotfiles_uri" {
   default      = "https://github.com/Sharpz7/dotfiles"
   type         = "string"
   mutable      = true
+}
+
+data "coder_parameter" "jupyter" {
+  name        = "Jupyter IDE type"
+  type        = "string"
+  description = "What type of Jupyter do you want?"
+  mutable     = true
+  default     = "lab"
+  icon        = "/icon/jupyter.svg"
+
+  option {
+    name = "Jupyter Lab"
+    value = "lab"
+    icon = "https://raw.githubusercontent.com/gist/egormkn/672764e7ce3bdaf549b62a5e70eece79/raw/559e34c690ea4765001d4ba0e715106edea7439f/jupyter-lab.svg"
+  }
+  option {
+    name = "Jupyter Notebook"
+    value = "notebook"
+    icon = "https://codingbootcamps.io/wp-content/uploads/jupyter_notebook.png"
+  }
+}
+
+locals {
+  jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
 }
 
 provider "kubernetes" {
@@ -149,6 +173,9 @@ resource "coder_agent" "main" {
 
   startup_script = <<EOT
     set -e
+    # start jupyter
+    jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/dev/null 2>&1 &
+
     sudo dockerd -H tcp://127.0.0.1:2375 &
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.13.0 | tee code-server-install.log
@@ -177,6 +204,22 @@ resource "coder_app" "code-server" {
     url       = "http://localhost:13337/healthz"
     interval  = 3
     threshold = 10
+  }
+}
+
+resource "coder_app" "jupyter" {
+  agent_id     = coder_agent.main.id
+  slug          = "j"
+  display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
+  icon          = "/icon/jupyter.svg"
+  url           = "http://localhost:8888/"
+  share         = "owner"
+  subdomain     = true
+
+  healthcheck {
+    url       = "http://localhost:8888/healthz/"
+    interval  = 10
+    threshold = 20
   }
 }
 
