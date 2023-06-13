@@ -65,17 +65,13 @@ data "coder_parameter" "image" {
   type        = "string"
   description = "What container image and language do you want?"
   mutable     = true
-  default     = "sharp6292/armada-image:latest"
+  default     = "sharp6292/coder-base:latest"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
-    name = "Armada"
-    value = "sharp6292/armada-image:latest"
+    name = "sharp6292/coder-base:latest"
+    value = "sharp6292/coder-base:latest"
   }
-  option {
-    name = "Alberta/ML"
-    value = "sharp6292/alberta-dev:latest"
-  }    
 }
 
 data "coder_parameter" "node" {
@@ -93,7 +89,7 @@ data "coder_parameter" "node" {
   option {
     name = "4vCPU, 8GB RAM"
     value = "vmi261078.contaboserver.net"
-  }    
+  }
 }
 
 data "coder_parameter" "dotfiles_uri" {

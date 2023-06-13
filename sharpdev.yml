@@ -6,13 +6,6 @@ scripts:
   login: |
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-  armada: |
-    docker build --network=host -t armada-image -f dockerfiles/armada.Dockerfile .
-    docker tag armada-image sharp6292/armada-image
-    docker push sharp6292/armada-image
-
-  alberta: |
-    docker build --network=host -t alberta-dev -f dockerfiles/alberta.Dockerfile .
-    docker tag alberta-dev sharp6292/alberta-dev
-    docker push sharp6292/alberta-dev
-
+  image: |
+    docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
+    docker push sharp6292/coder-base
