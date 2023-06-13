@@ -49,6 +49,3 @@ RUN pip3 install jupyterlab==3.5.2 && \
     pip3 install notebook==6.5.2
 
 USER coder
-
-RUN pip3 install pipenv &&\
-    curl -sSL https://install.python-poetry.org | python3 -
