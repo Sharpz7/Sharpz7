@@ -196,9 +196,9 @@ helm delete kimai
 ## Add new user
 
 ```bash
-wget -kubectl exec --stdin --tty POD_NAME -- /bin/bash
+kubectl exec --stdin --tty POD_NAME -- /bin/bash
 
-bin/console kimai:user:create username admin@example.com ROLE_SUPER_ADMIN
+/opt/kimai/bin/console kimai:user:create admin email@domain.com ROLE_SUPER_ADMIN password
 ```
 
 ```sql
