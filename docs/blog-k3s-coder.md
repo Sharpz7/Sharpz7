@@ -225,3 +225,19 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-r
 | envsubst \
 | helm upgrade docker-registry twuni/docker-registry --namespace default --values -
 ```
+
+# Overleaf Install
+
+```bash
+helm repo add k8s-at-home https://k8s-at-home.com/charts/
+helm repo update
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/overleaf.yaml \
+| envsubst \
+| helm install overleaf k8s-at-home/overleaf --namespace default --values -
+
+# for upgrade
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/overleaf.yaml \
+| envsubst \
+| helm upgrade overleaf k8s-at-home/overleaf --namespace default --values -
+```
