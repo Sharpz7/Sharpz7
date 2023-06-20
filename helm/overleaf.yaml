@@ -46,7 +46,6 @@ persistence:
 
 mongo:
   enabled: true
-  image: mongo:4.4
   persistence:
     enabled: true
     storageClass: ""
@@ -55,7 +54,6 @@ mongo:
 
 redis:
   enabled: true
-  image: redis:5
   persistence:
     enabled: true
     storageClass: ""
