@@ -44,18 +44,15 @@ persistence:
     retain: true
     size: 1Gi
 
-mongo:
-  enabled: true
-  persistence:
-    enabled: true
-    storageClass: ""
-    accessMode: ReadWriteOnce
-    size: 1Gi
-
 redis:
   enabled: true
+  replica:
+    replicaCount: 1
+
+mongodb:
+  enabled: true
   persistence:
     enabled: true
-    storageClass: ""
-    accessMode: ReadWriteOnce
-    size: 1Gi
+    size: 8Gi
+  architecture: replicaset
+  replicaCount: 1
