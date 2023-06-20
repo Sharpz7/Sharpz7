@@ -25,6 +25,9 @@ ingress:
 
     hosts:
       - host: "overleaf.${DOMAIN}"
+        paths:
+        - path: /
+          pathType: Prefix
 
     # -- Configure TLS for the ingress. Both secretName and hosts can process a Helm template.
     tls:
