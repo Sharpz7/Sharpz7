@@ -9,7 +9,7 @@ image:
   # -- image repository
   repository: sharelatex/sharelatex
   # -- image tag
-  tag: 2.7.1
+  tag: 4.0.2
   # -- image pull policy
   pullPolicy: IfNotPresent
 
@@ -58,3 +58,6 @@ redis:
 mongodb:
   enabled: true
   fullnameOverride: overleaf-mongodb
+  persistence:
+    enabled: true
+    size: 8Gi
