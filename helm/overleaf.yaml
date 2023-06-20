@@ -35,7 +35,10 @@ ingress:
 persistence:
   data:
     enabled: true
+    type: pvc
     mountPath: /var/lib/sharelatex
+    accessMode: ReadWriteOnce
+    retain: true
 
 redis:
   enabled: true
