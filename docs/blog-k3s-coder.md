@@ -252,7 +252,7 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/ialacol.
 | envsubst \
 | helm install orca-mini ialacol/ialacol --namespace default --values -
 
-wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/ialacol/ingress.yaml \
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/ialacol/ingress.yml \
 | envsubst \
 | kubectl delete -f -
 ```
