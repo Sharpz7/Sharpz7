@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: orca-mini-ingress
+spec:
+  rules:
+  - host: llm.mcaq.me
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: orca-mini
+          servicePort: 8000
+  tls:
+  - hosts:
+    - llm.mcaq.me
+    secretName: ${DOMAIN_NAME}-tls

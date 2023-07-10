@@ -241,3 +241,18 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/overleaf
 | envsubst \
 | helm upgrade overleaf k8s-at-home/overleaf --namespace default --values -
 ```
+
+# Ialacol Install
+
+```bash
+helm repo add ialacol https://chenhunghan.github.io/ialacol
+helm repo update
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/ialacol.yaml \
+| envsubst \
+| helm install orca-mini ialacol/ialacol --namespace default --values -
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/ialacol/ingress.yaml \
+| envsubst \
+| kubectl delete -f -
+```
