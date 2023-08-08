@@ -4,6 +4,7 @@ ENV GOROOT /usr/local/go
 ENV GOPATH /home/coder/go
 ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
 ENV PATH /home/coder/.local/bin:$PATH
+ENV PATH $GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}
 
 ENV CGO_ENABLED 0
 
@@ -37,14 +38,6 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 USER coder
 
-# Get the Kubernetes source code
-WORKDIR $GOPATH/src/k8s.io
-RUN git clone https://github.com/kubernetes/kubernetes.git
-WORKDIR $GOPATH/src/k8s.io/kubernetes
+COPY ./dockerfiles/kubernetes.sh /home/coder/kubernetes.sh
+RUN sudo chmod +x /home/coder/kubernetes.sh
 
-# etcd
-RUN ./hack/install-etcd.sh
-ENV PATH $GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}
-
-# verify this works
-# RUN make WHAT="cmd/kubectl" GOGCFLAGS="-e" DBG=1
