@@ -38,6 +38,6 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 USER coder
 
-COPY ./dockerfiles/kubernetes.sh /home/coder/kubernetes.sh
-RUN sudo chmod +x /home/coder/kubernetes.sh
+COPY ./dockerfiles/kubernetes.sh /usr/local/bin/kubernetes.sh
+RUN sudo chmod +x /usr/local/bin/kubernetes.sh
 

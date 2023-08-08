@@ -54,5 +54,5 @@ RUN PROTOC_ZIP=protoc-3.17.3-linux-x86_64.zip && \
     sudo curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/$PROTOC_ZIP && \
     sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc && \
     sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
-    rm -f $PROTOC_ZIP && \
+    sudo rm -f $PROTOC_ZIP && \
     sudo chmod +x /usr/local/bin/protoc
