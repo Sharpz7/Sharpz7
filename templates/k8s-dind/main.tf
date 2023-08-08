@@ -71,7 +71,12 @@ data "coder_parameter" "image" {
   option {
     name = "Armada"
     value = "sharp6292/coder-base:latest"
-  }   
+  }
+
+  option {
+    name = "Kubernetes"
+    value = "sharp6292/kubernetes-base"
+  }
 }
 
 data "coder_parameter" "node" {
@@ -89,7 +94,7 @@ data "coder_parameter" "node" {
   option {
     name = "4vCPU, 8GB RAM"
     value = "vmi261078.contaboserver.net"
-  }    
+  }
 }
 
 data "coder_parameter" "dotfiles_uri" {
@@ -122,7 +127,7 @@ data "coder_parameter" "jupyter" {
     name = "Jupyter Notebook"
     value = "notebook"
     icon = "https://codingbootcamps.io/wp-content/uploads/jupyter_notebook.png"
-  }       
+  }
 }
 
 locals {
@@ -173,12 +178,12 @@ resource "coder_agent" "main" {
 
   startup_script = <<EOT
     set -e
-    # start jupyter 
+    # start jupyter
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/dev/null 2>&1 &
 
     sudo dockerd -H tcp://127.0.0.1:2375 >/dev/null 2>&1 &
 
-    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.13.0 | tee code-server-install.log
+    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
 
     if [ -n "$DOTFILES_URI" ]; then
@@ -209,18 +214,18 @@ resource "coder_app" "code-server" {
 
 resource "coder_app" "jupyter" {
   agent_id     = coder_agent.main.id
-  slug          = "j"  
+  slug          = "j"
   display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
   icon          = "/icon/jupyter.svg"
   url           = "http://localhost:8888/"
   share         = "owner"
-  subdomain     = true  
+  subdomain     = true
 
   healthcheck {
     url       = "http://localhost:8888/healthz/"
     interval  = 10
     threshold = 20
-  }  
+  }
 }
 
 resource "kubernetes_pod" "main" {
