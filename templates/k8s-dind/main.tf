@@ -294,7 +294,7 @@ resource "kubernetes_pod" "main" {
     }
 
     volume {
-      name = "home"
+      name = "projects"
       persistent_volume_claim {
         claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
         read_only  = false
