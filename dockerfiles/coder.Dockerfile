@@ -1,11 +1,14 @@
-FROM codercom/enterprise-base:ubuntu
+FROM mcr.microsoft.com/devcontainers/base:bullseye
 
+# general env
 ENV PATH /home/coder/.local/bin:$PATH
 
+# golang env
 ENV GOROOT /usr/local/go
-ENV GOPATH /home/coder/go
+ENV GOPATH /home/coder/projects/go
 ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
 
+# kubernetes env
 ENV PATH $GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -63,3 +66,5 @@ RUN PROTOC_ZIP=protoc-3.17.3-linux-x86_64.zip && \
 
 # Install PYYAML
 RUN pip3 install pyyaml
+
+COPY kubernetes.sh ~/kubernetes.sh
