@@ -283,8 +283,8 @@ resource "kubernetes_pod" "main" {
 
       resources {
         requests = {
-          "cpu"    = "${local.node_resources[data.coder_parameter.node.value]["cpu"]}"
-          "memory" = "${local.node_resources[data.coder_parameter.node.value]["memory"]}Gi"
+          "cpu"    = "1"
+          "memory" = "1Gi"
         }
         limits = {
           "cpu"    = "${local.node_resources[data.coder_parameter.node.value]["cpu"]}"
