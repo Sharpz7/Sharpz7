@@ -2,11 +2,11 @@ terraform {
   required_providers {
     coder = {
       source  = "coder/coder"
-      version = "~> 0.7.0"
+      version = "0.11.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.18"
+      version = "~> 2.3.2"
     }
   }
 }
@@ -17,7 +17,6 @@ locals {
 }
 
 provider "coder" {
-  feature_use_managed_variables = true
 }
 
 data "coder_parameter" "cpu" {
@@ -67,16 +66,6 @@ data "coder_parameter" "image" {
   mutable     = true
   default     = "sharp6292/coder-base:latest"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
-
-  option {
-    name = "Armada"
-    value = "sharp6292/coder-base:latest"
-  }
-
-  option {
-    name = "Kubernetes"
-    value = "sharp6292/kubernetes-base"
-  }
 }
 
 data "coder_parameter" "node" {
@@ -169,12 +158,14 @@ resource "kubernetes_persistent_volume_claim" "home" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "coder_agent" "main" {
   arch = "amd64"
   os   = "linux"
-  env  = { "DOTFILES_URI" = data.coder_parameter.dotfiles_uri.value != "" ? data.coder_parameter.dotfiles_uri.value : null }
 
   startup_script = <<EOT
     set -e
@@ -191,8 +182,18 @@ resource "coder_agent" "main" {
       coder dotfiles -y "$DOTFILES_URI"
     fi
 
-    code-server --auth none --port 13337 | tee code-server-install.log >/dev/null 2>&1 &
+    code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
   EOT
+
+  dir = "/home/coder/projects"
+
+  env = {
+    GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
+    GIT_COMMITTER_NAME  = "${data.coder_workspace.me.owner}"
+    GIT_AUTHOR_EMAIL    = "${data.coder_workspace.me.owner_email}"
+    GIT_COMMITTER_EMAIL = "${data.coder_workspace.me.owner_email}"
+    DOTFILES_URI        = data.coder_parameter.dotfiles_uri.value != "" ? data.coder_parameter.dotfiles_uri.value : null
+  }
 }
 
 # code-server
@@ -333,26 +334,6 @@ resource "kubernetes_pod" "main" {
       host_path {
         path = "/sys/fs/cgroup"
         type = "Directory"
-      }
-    }
-
-    affinity {
-      pod_anti_affinity {
-        // This affinity attempts to spread out all workspace pods evenly across
-        // nodes.
-        preferred_during_scheduling_ignored_during_execution {
-          weight = 1
-          pod_affinity_term {
-            topology_key = "kubernetes.io/hostname"
-            label_selector {
-              match_expressions {
-                key      = "app.kubernetes.io/name"
-                operator = "In"
-                values   = ["coder-workspace"]
-              }
-            }
-          }
-        }
       }
     }
   }

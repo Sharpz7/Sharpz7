@@ -1,9 +1,12 @@
 FROM codercom/enterprise-base:ubuntu
 
+ENV PATH /home/coder/.local/bin:$PATH
+
 ENV GOROOT /usr/local/go
 ENV GOPATH /home/coder/go
 ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
-ENV PATH /home/coder/.local/bin:$PATH
+
+ENV PATH $GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -18,16 +21,17 @@ RUN add-apt-repository ppa:deadsnakes/ppa &&\
         python3.9 \
         python3-pip \
         yarn \
-        nodejs &&\
+        nodejs \
+        build-essential &&\
     # Cleanup
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/*
 
-# Golang Install go1.20.2
-RUN wget https://dl.google.com/go/go1.20.2.linux-amd64.tar.gz && \
-    tar -xvf go1.20.2.linux-amd64.tar.gz && \
+# Golang Install go1.20.7
+RUN wget https://dl.google.com/go/go1.20.7.linux-amd64.tar.gz && \
+    tar -xvf go1.20.7.linux-amd64.tar.gz && \
     mv go /usr/local && \
-    rm go1.20.2.linux-amd64.tar.gz && \
+    rm go1.20.7.linux-amd64.tar.gz && \
     # Install go go1.19.7
     go install golang.org/dl/go1.19.7@latest && \
     go1.19.7 download && \
@@ -56,3 +60,6 @@ RUN PROTOC_ZIP=protoc-3.17.3-linux-x86_64.zip && \
     sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
     sudo rm -f $PROTOC_ZIP && \
     sudo chmod +x /usr/local/bin/protoc
+
+# Install PYYAML
+RUN pip3 install pyyaml
