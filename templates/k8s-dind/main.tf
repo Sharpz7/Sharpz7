@@ -60,11 +60,12 @@ data "coder_parameter" "disk_size" {
 }
 
 data "coder_parameter" "image" {
-  name        = "Container Image"
-  type        = "string"
+  name         = "container_image"
+  display_name = "Container Image"
   description = "What container image and language do you want?"
-  mutable     = true
-  default     = "sharp6292/coder-base:latest"
+  default      = "sharp6292/coder-base:latest"
+  type         = "string"
+  mutable      = true
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 }
 
@@ -172,7 +173,7 @@ resource "coder_agent" "main" {
     # start jupyter
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/dev/null 2>&1 &
 
-    sudo dockerd -H tcp://127.0.0.1:2375 >/dev/null 2>&1 &
+    sudo dockerd -H tcp://0.0.0.0:2375 >/dev/null 2>&1 &
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
