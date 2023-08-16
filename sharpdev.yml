@@ -7,8 +7,5 @@ scripts:
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
   image: |
-    docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
+    docker build -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
     docker push sharp6292/coder-base
-
-    docker build --network=host -t sharp6292/kubernetes-base -f dockerfiles/kubernetes.Dockerfile .
-    docker push sharp6292/kubernetes-base
