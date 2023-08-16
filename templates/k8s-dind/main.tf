@@ -14,35 +14,50 @@ terraform {
 locals {
   namespace      = "coder"
   use_kubeconfig = false
+
+  node_resources = {
+    "vmi1031871.contaboserver.net" = {
+      cpu    = 10
+      memory = 60
+    },
+    "vmi261078.contaboserver.net" = {
+      cpu    = 4
+      memory = 8
+    }
+  }
+
+  jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
 }
 
 provider "coder" {
 }
-
-data "coder_parameter" "cpu" {
-  name        = "CPU cores"
-  type        = "number"
-  description = "CPU cores - be sure the cluster nodes have the capacity"
-  icon        = "https://png.pngtree.com/png-clipart/20191122/original/pngtree-processor-icon-png-image_5165793.jpg"
-  validation {
-    min       = 1
-    max       = 10
-  }
-  mutable     = true
-  default     = 2
+provider "kubernetes" {
+  # Authenticate via ~/.kube/config or a Coder-specific ServiceAccount, depending on admin preferences
+  config_path = local.use_kubeconfig == true ? "~/.kube/config" : null
 }
 
-data "coder_parameter" "memory" {
-  name        = "Memory (__ GB)"
-  type        = "number"
-  description = "Be sure the cluster nodes have the capacity"
-  icon        = "https://www.vhv.rs/dpng/d/33-338595_random-access-memory-logo-hd-png-download.png"
-  validation {
-    min       = 1
-    max       = 40
-  }
+data "coder_workspace" "me" {}
+
+
+# PARAMS
+# ==================================================
+
+data "coder_parameter" "node" {
+  name        = "Cluster Node"
+  type        = "string"
+  description = "Which Node should the Pod be placed on?"
   mutable     = true
-  default     = 4
+  default     = "vmi1031871.contaboserver.net"
+  icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
+
+  option {
+    name = "10vCPU, 60GB RAM"
+    value = "vmi1031871.contaboserver.net"
+  }
+  option {
+    name = "4vCPU, 8GB RAM"
+    value = "vmi261078.contaboserver.net"
+  }
 }
 
 data "coder_parameter" "disk_size" {
@@ -67,24 +82,6 @@ data "coder_parameter" "image" {
   type         = "string"
   mutable      = true
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
-}
-
-data "coder_parameter" "node" {
-  name        = "Cluster Node"
-  type        = "string"
-  description = "Which Node should the Pod be placed on?"
-  mutable     = true
-  default     = "vmi1031871.contaboserver.net"
-  icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
-
-  option {
-    name = "10vCPU, 60GB RAM"
-    value = "vmi1031871.contaboserver.net"
-  }
-  option {
-    name = "4vCPU, 8GB RAM"
-    value = "vmi261078.contaboserver.net"
-  }
 }
 
 data "coder_parameter" "dotfiles_uri" {
@@ -120,49 +117,43 @@ data "coder_parameter" "jupyter" {
   }
 }
 
-locals {
-  jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
-}
+# APPS
+# ================================
 
-provider "kubernetes" {
-  # Authenticate via ~/.kube/config or a Coder-specific ServiceAccount, depending on admin preferences
-  config_path = local.use_kubeconfig == true ? "~/.kube/config" : null
-}
+resource "coder_app" "code-server" {
+  agent_id     = coder_agent.main.id
+  slug         = "code-server"
+  display_name = "code-server"
+  icon         = "/icon/code.svg"
+  url          = "http://localhost:13337?folder=/home/coder"
+  subdomain    = false
+  share        = "owner"
 
-data "coder_workspace" "me" {}
-
-resource "kubernetes_persistent_volume_claim" "home" {
-  metadata {
-    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
-    namespace = local.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-pvc"
-      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
-      "app.kubernetes.io/part-of"  = "coder"
-      // Coder specific labels.
-      "com.coder.resource"       = "true"
-      "com.coder.workspace.id"   = data.coder_workspace.me.id
-      "com.coder.workspace.name" = data.coder_workspace.me.name
-      "com.coder.user.id"        = data.coder_workspace.me.owner_id
-      "com.coder.user.username"  = data.coder_workspace.me.owner
-    }
-    annotations = {
-      "com.coder.user.email" = data.coder_workspace.me.owner_email
-    }
-  }
-  wait_until_bound = false
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = "${data.coder_parameter.disk_size.value}Gi"
-      }
-    }
-  }
-  lifecycle {
-    ignore_changes = all
+  healthcheck {
+    url       = "http://localhost:13337/healthz"
+    interval  = 3
+    threshold = 10
   }
 }
+
+resource "coder_app" "jupyter" {
+  agent_id     = coder_agent.main.id
+  slug          = "j"
+  display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
+  icon          = "/icon/jupyter.svg"
+  url           = "http://localhost:8888/"
+  share         = "owner"
+  subdomain     = true
+
+  healthcheck {
+    url       = "http://localhost:8888/healthz/"
+    interval  = 10
+    threshold = 20
+  }
+}
+
+# CONTAINER
+# =================================================
 
 resource "coder_agent" "main" {
   arch = "amd64"
@@ -197,36 +188,36 @@ resource "coder_agent" "main" {
   }
 }
 
-# code-server
-resource "coder_app" "code-server" {
-  agent_id     = coder_agent.main.id
-  slug         = "code-server"
-  display_name = "code-server"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
-  subdomain    = false
-  share        = "owner"
-
-  healthcheck {
-    url       = "http://localhost:13337/healthz"
-    interval  = 3
-    threshold = 10
+resource "kubernetes_persistent_volume_claim" "home" {
+  metadata {
+    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
+    namespace = local.namespace
+    labels = {
+      "app.kubernetes.io/name"     = "coder-pvc"
+      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
+      "app.kubernetes.io/part-of"  = "coder"
+      // Coder specific labels.
+      "com.coder.resource"       = "true"
+      "com.coder.workspace.id"   = data.coder_workspace.me.id
+      "com.coder.workspace.name" = data.coder_workspace.me.name
+      "com.coder.user.id"        = data.coder_workspace.me.owner_id
+      "com.coder.user.username"  = data.coder_workspace.me.owner
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace.me.owner_email
+    }
   }
-}
-
-resource "coder_app" "jupyter" {
-  agent_id     = coder_agent.main.id
-  slug          = "j"
-  display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
-  icon          = "/icon/jupyter.svg"
-  url           = "http://localhost:8888/"
-  share         = "owner"
-  subdomain     = true
-
-  healthcheck {
-    url       = "http://localhost:8888/healthz/"
-    interval  = 10
-    threshold = 20
+  wait_until_bound = false
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${data.coder_parameter.disk_size.value}Gi"
+      }
+    }
+  }
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -266,8 +257,8 @@ resource "kubernetes_pod" "main" {
         value = coder_agent.main.token
       }
       volume_mount {
-        mount_path = "/home/coder"
-        name       = "home"
+        mount_path = "/home/coder/projects"
+        name       = "projects"
         read_only  = false
       }
       volume_mount {
@@ -287,31 +278,23 @@ resource "kubernetes_pod" "main" {
       }
       env {
         name  = "DOCKER_HOST"
-        value = "localhost:2375"
+        value = "0.0.0.0:2375"
       }
 
       resources {
         requests = {
-          "cpu"    = "1"
-          "memory" = "1Gi"
+          "cpu"    = "${local.node_resources[data.coder_parameter.node.value]["cpu"]}"
+          "memory" = "${local.node_resources[data.coder_parameter.node.value]["memory"]}Gi"
         }
         limits = {
-          "cpu"    = "${data.coder_parameter.cpu.value}"
-          "memory" = "${data.coder_parameter.memory.value}Gi"
+          "cpu"    = "${local.node_resources[data.coder_parameter.node.value]["cpu"]}"
+          "memory" = "${local.node_resources[data.coder_parameter.node.value]["memory"]}Gi"
         }
       }
     }
 
     volume {
       name = "home"
-      persistent_volume_claim {
-        claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
-        read_only  = false
-      }
-    }
-
-    volume {
-      name = "usr-local"
       persistent_volume_claim {
         claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
         read_only  = false
