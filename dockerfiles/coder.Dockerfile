@@ -27,10 +27,7 @@ RUN apt update &&\
         nano \
         python3.9 \
         python3-pip \
-        npm \
-        net-tools \
-        jq \
-        build-essential &&\
+        npm && \
     # Cleanup
     apt clean &&\
     rm -rf /var/lib/apt/lists/*
