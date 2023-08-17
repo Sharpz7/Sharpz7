@@ -37,11 +37,7 @@ RUN apt update &&\
 
 # Golang Install
 RUN curl -L "https://go.dev/dl/go1.20.linux-amd64.tar.gz" | tar -C /usr/local -xzvf - && \
-    go version && \
-    go install golang.org/dl/go1.19.7@latest && \
-    go1.19.7 download && \
-    rm -rf /root/sdk/go1.19.7/go1.19.7.linux-amd64.tar.gz && \
-    go1.19.7 version
+    go version
 
 # Kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" &&\
