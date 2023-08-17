@@ -7,5 +7,6 @@ scripts:
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
   image: |
-    docker build -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
+    sharpdev login
+    docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
     docker push sharp6292/coder-base
