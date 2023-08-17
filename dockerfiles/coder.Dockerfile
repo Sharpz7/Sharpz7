@@ -63,6 +63,3 @@ RUN sudo npm install -g n && \
     sudo n lts && \
     sudo n prune && \
     sudo npm install -g yarn
-
-# Install PYYAML (Needed for Kubernetes)
-RUN pip3 install pyyaml && python3 -c "import yaml; print(yaml.__version__)"
