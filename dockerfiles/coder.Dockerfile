@@ -29,6 +29,7 @@ RUN apt update &&\
         python3-pip \
         npm \
         net-tools \
+        jq \
         build-essential &&\
     # Cleanup
     apt clean &&\
