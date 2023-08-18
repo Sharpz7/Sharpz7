@@ -33,14 +33,7 @@ RUN apt update &&\
         nano \
         python3.9 \
         python3-pip \
-        npm \
-        cmake \
-        pkg-config \
-        clang \
-        libgtk-3-dev \
-        ninja-build \
-
-        dart &&\
+        npm &&\
     # Cleanup
     apt clean &&\
     rm -rf /var/lib/apt/lists/*
@@ -58,12 +51,6 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 RUN pip3 install jupyterlab==3.5.2 && \
     pip3 install jupyter-core==5.1.3 && \
     pip3 install notebook==6.5.2
-
-# Install Flutter
-RUN wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.0-stable.tar.xz && \
-    tar xf flutter_linux_3.13.0-stable.tar.xz && \
-    mv flutter /home/coder/flutter && \
-    rm flutter_linux_3.13.0-stable.tar.xz
 
 RUN chown -R coder:coder /home/coder
 
