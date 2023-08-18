@@ -34,6 +34,12 @@ RUN apt update &&\
         python3.9 \
         python3-pip \
         npm \
+        cmake \
+        pkg-config \
+        clang \
+        libgtk-3-dev \
+        ninja-build \
+
         dart &&\
     # Cleanup
     apt clean &&\
