@@ -7,9 +7,11 @@ ENV PATH /home/coder/.local/bin:$PATH
 ENV GOROOT /usr/local/go
 ENV GOPATH /home/coder/go
 ENV GOBIN $GOPATH/bin
-
 ENV PATH $PATH:$GOBIN
 ENV PATH $PATH:$GOROOT/bin
+
+# flutter
+ENV PATH $PATH:/home/coder/flutter/bin
 
 # kubernetes env
 ENV PATH $GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}
@@ -21,13 +23,18 @@ USER root
 # Install apt packages
 RUN apt update &&\
     apt upgrade -y &&\
+    apt install -y apt-transport-https &&\
+    wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - &&\
+    wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list &&\
     add-apt-repository ppa:deadsnakes/ppa &&\
+    apt update &&\
     apt remove -y python3 python3-pip &&\
     apt install -y \
         nano \
         python3.9 \
         python3-pip \
-        npm && \
+        npm \
+        dart &&\
     # Cleanup
     apt clean &&\
     rm -rf /var/lib/apt/lists/*
@@ -45,6 +52,12 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 RUN pip3 install jupyterlab==3.5.2 && \
     pip3 install jupyter-core==5.1.3 && \
     pip3 install notebook==6.5.2
+
+# Install Flutter
+RUN wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.0-stable.tar.xz && \
+    tar xf flutter_linux_3.13.0-stable.tar.xz && \
+    mv flutter /home/coder/flutter && \
+    rm flutter_linux_3.13.0-stable.tar.xz
 
 RUN chown -R coder:coder /home/coder
 
