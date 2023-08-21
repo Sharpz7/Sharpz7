@@ -259,4 +259,11 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/ial
 
 # ShiftFS
 
-https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md#installing-shiftfs
+```
+sudo apt-get install -y make dkms git wget
+git clone -b k5.4 https://github.com/toby63/shiftfs-dkms.git shiftfs-k54
+cd shiftfs-k54
+./update1
+sudo make -f Makefile.dkms
+modinfo shiftfs
+```
