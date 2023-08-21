@@ -256,3 +256,7 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/ial
 | envsubst \
 | kubectl delete -f -
 ```
+
+# ShiftFS
+
+https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md#installing-shiftfs
