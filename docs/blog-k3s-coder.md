@@ -267,3 +267,9 @@ cd shiftfs-k54
 sudo make -f Makefile.dkms
 modinfo shiftfs
 ```
+
+# Using GCloud
+
+https://cloud.google.com/sdk/docs/install#linux
+
+From inside pod
