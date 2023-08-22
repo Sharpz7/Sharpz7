@@ -114,7 +114,7 @@ module "gce-container" {
   container = {
     image   = data.coder_parameter.image.value
     command = ["sh"]
-    args    = ["--gpus", "all", "-c", coder_agent.main.init_script]
+    args    = ["-c", coder_agent.main.init_script]
     securityContext = {
       privileged : true
     }
