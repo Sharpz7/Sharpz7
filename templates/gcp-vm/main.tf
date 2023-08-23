@@ -15,8 +15,9 @@ provider "coder" {
 }
 
 locals {
-  zone = "us-central1-a"
+  zone         = "us-central1-a"
   machine_type = "n1-standard-4"
+  gpu          = "nvidia-tesla-v100"
 }
 
 variable "project_id" {
@@ -120,6 +121,30 @@ resource "coder_agent" "main" {
       df /home/coder | awk '$NF=="/"{printf "%s", $5}'
     EOT
   }
+  metadata {
+    display_name = "GPU Usage"
+    interval     = 10
+    key          = "4_gpu_usage"
+    script       = <<EOT
+      (nvidia-smi 1> /dev/null 2> /dev/null) && (nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{printf "%s%%", $1}') || echo "N/A"
+    EOT
+  }
+  metadata {
+    display_name = "GPU Memory Usage"
+    interval     = 10
+    key          = "5_gpu_memory_usage"
+    script       = <<EOT
+      (nvidia-smi 1> /dev/null 2> /dev/null) && (nvidia-smi --query-gpu=utilization.memory --format=csv,noheader,nounits | awk '{printf "%s%%", $1}') || echo "N/A"
+    EOT
+  }
+  metadata {
+    display_name = "Word of the Day"
+    interval     = 86400
+    key          = "5_word_of_the_day"
+    script       = <<EOT
+      curl -o - --silent https://www.merriam-webster.com/word-of-the-day 2>&1 | awk ' $0 ~ "Word of the Day: [A-z]+" { print $5; exit }'
+    EOT
+  }
 }
 
 # code-server
@@ -158,7 +183,7 @@ resource "google_compute_instance" "dev" {
   }
   guest_accelerator {
     count = 1
-    type  = "projects/${var.project_id}/zones/${local.zone}/acceleratorTypes/nvidia-tesla-v100"
+    type  = "projects/${var.project_id}/zones/${local.zone}/acceleratorTypes/${local.gpu}"
   }
   boot_disk {
     auto_delete = false
@@ -195,8 +220,16 @@ resource "coder_metadata" "workspace_info" {
   resource_id = google_compute_instance.dev[0].id
 
   item {
-    key   = "type"
+    key   = "Machine Type"
     value = google_compute_instance.dev[0].machine_type
+  }
+  item {
+    key = "GPU Type"
+    value   = local.gpu
+  }
+  item {
+    key   = "VM Zone"
+    value = local.zone
   }
 }
 

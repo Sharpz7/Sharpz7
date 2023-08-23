@@ -39,6 +39,28 @@ provider "kubernetes" {
 data "coder_workspace" "me" {}
 
 
+resource "coder_metadata" "workspace_info" {
+  count       = data.coder_workspace.me.start_count
+  resource_id = kubernetes_pod.main[0].id
+
+  item {
+    key   = "Node"
+    value = data.coder_parameter.node.value
+  }
+  item {
+    key   = "Disk Size"
+    value = data.coder_parameter.disk_size.value
+  }
+  item {
+    key   = "Image"
+    value = data.coder_parameter.image.value
+  }
+  item {
+    key   = "DotFile URL"
+    value = data.coder_parameter.dotfiles_uri.value
+  }
+}
+
 # PARAMS
 # ==================================================
 
@@ -152,6 +174,16 @@ resource "coder_app" "jupyter" {
   }
 }
 
+resource "coder_app" "filebrowser" {
+  agent_id     = coder_agent.main.id
+  display_name = "File Browser"
+  slug         = "filebrowser"
+  icon         = "https://raw.githubusercontent.com/matifali/logos/main/database.svg"
+  url          = "http://localhost:8080"
+  subdomain    = true
+  share        = "owner"
+}
+
 # CONTAINER
 # =================================================
 
@@ -162,9 +194,13 @@ resource "coder_agent" "main" {
   startup_script = <<EOT
     set -e
     # start jupyter
-    jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/dev/null 2>&1 &
+    jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/tmp/jupyter.log 2>&1 &
 
     sudo dockerd -H tcp://0.0.0.0:2375 >/dev/null 2>&1 &
+
+    # Install and start filebrowser
+    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+    filebrowser --noauth -r ~/home/coder >/tmp/filebrowser.log 2>&1 &
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
@@ -177,7 +213,7 @@ resource "coder_agent" "main" {
     code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
   EOT
 
-  dir = "/home/coder/projects"
+  dir = "/home/coder"
 
   env = {
     GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
@@ -185,6 +221,44 @@ resource "coder_agent" "main" {
     GIT_AUTHOR_EMAIL    = "${data.coder_workspace.me.owner_email}"
     GIT_COMMITTER_EMAIL = "${data.coder_workspace.me.owner_email}"
     DOTFILES_URI        = data.coder_parameter.dotfiles_uri.value != "" ? data.coder_parameter.dotfiles_uri.value : null
+  }
+
+  metadata {
+    display_name = "CPU Usage Workspace"
+    interval     = 10
+    key          = "0_cpu_usage"
+    script       = "coder stat cpu"
+  }
+
+  metadata {
+    display_name = "CPU Usage Host"
+    interval     = 10
+    key          = "2_cpu_usage"
+    script       = "coder stat cpu --host"
+  }
+
+  metadata {
+    display_name = "RAM Usage Host"
+    interval     = 10
+    key          = "3_ram_usage"
+    script       = "coder stat mem --host"
+  }
+
+  metadata {
+    display_name = "Disk Usage"
+    interval     = 600
+    key          = "6_disk_usage"
+    script       = "coder stat disk $HOME"
+  }
+
+  metadata {
+    display_name = "Word of the Day"
+    interval     = 86400
+    key          = "5_word_of_the_day"
+    script       = <<EOT
+      #!/bin/bash
+      curl -o - --silent https://www.merriam-webster.com/word-of-the-day 2>&1 | awk ' $0 ~ "Word of the Day: [A-z]+" { print $5; exit }'
+    EOT
   }
 }
 
