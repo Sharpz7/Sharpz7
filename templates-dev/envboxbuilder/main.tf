@@ -74,6 +74,15 @@ resource "coder_agent" "main" {
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.8.3 | tee code-server-install.log
     code-server --auth none --port 13337 | tee code-server-install.log &
   EOT
+
+  dir           = "/workspaces"
+
+  env = {
+    GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
+    GIT_COMMITTER_NAME  = "${data.coder_workspace.me.owner}"
+    GIT_AUTHOR_EMAIL    = "${data.coder_workspace.me.owner_email}"
+    GIT_COMMITTER_EMAIL = "${data.coder_workspace.me.owner_email}"
+  }
 }
 
 # code-server
@@ -93,9 +102,9 @@ resource "coder_app" "code-server" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "home" {
+resource "kubernetes_persistent_volume_claim" "workspaces" {
   metadata {
-    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
+    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-workspaces"
     namespace = local.namespace
   }
   wait_until_bound = false
@@ -114,8 +123,6 @@ resource "kubernetes_persistent_volume_claim" "home" {
 
 locals {
   git_url = "https://github.com/craiglpeters/kubernetes-devcontainer.git"
-  init_script = replace(coder_agent.main.startup_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")
-  coder_inner_envs = "INIT_SCRIPT=${local.init_script},GIT_URL=${local.git_url}"
 }
 
 resource "kubernetes_pod" "main" {
@@ -177,14 +184,23 @@ resource "kubernetes_pod" "main" {
       }
 
       env {
-        name  = "CODER_INNER_ENVS"
-        value = local.coder_inner_envs
+        name = "GIT_URL"
+        value = local.git_url
       }
 
-      # ????????????????????
+      env {
+        name  = "CODER_INNER_ENVS"
+        value = "INIT_SCRIPT,CODER_AGENT_URL,CODER_AGENT_TOKEN,GIT_URL"
+      }
+
+      env {
+        name  = "INIT_SCRIPT"
+        value = replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")
+      }
+
       env {
         name  = "CODER_BOOTSTRAP_SCRIPT"
-        value = "sh -c '/.envbuilder/bin/envbuilder'"
+        value = replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")
       }
 
       env {
@@ -209,38 +225,23 @@ resource "kubernetes_pod" "main" {
 
       env {
         name = "CODER_CPUS"
-        value_from {
-          resource_field_ref {
-            resource = "limits.cpu"
-          }
-        }
+        value = 10
       }
 
       env {
         name = "CODER_MEMORY"
-        value_from {
-          resource_field_ref {
-            resource = "limits.memory"
-          }
-        }
-      }
-
-      volume_mount {
-        mount_path = "/home/coder"
-        name       = "home"
-        read_only  = false
-        sub_path   = "home"
+        value = "40G"
       }
 
       volume_mount {
         mount_path = "/var/lib/coder/docker"
-        name       = "home"
+        name       = "workspaces"
         sub_path   = "cache/docker"
       }
 
       volume_mount {
         mount_path = "/var/lib/coder/containers"
-        name       = "home"
+        name       = "workspaces"
         sub_path   = "cache/containers"
       }
 
@@ -251,13 +252,13 @@ resource "kubernetes_pod" "main" {
 
       volume_mount {
         mount_path = "/var/lib/containers"
-        name       = "home"
+        name       = "workspaces"
         sub_path   = "envbox/containers"
       }
 
       volume_mount {
         mount_path = "/var/lib/docker"
-        name       = "home"
+        name       = "workspaces"
         sub_path   = "envbox/docker"
       }
 
@@ -270,13 +271,17 @@ resource "kubernetes_pod" "main" {
         mount_path = "/lib/modules"
         name       = "lib-modules"
       }
+
+      volume_mount {
+        name       = "workspaces"
+        mount_path = "/workspaces"
+      }
     }
 
     volume {
-      name = "home"
+      name = "workspaces"
       persistent_volume_claim {
-        claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
-        read_only  = false
+        claim_name = kubernetes_persistent_volume_claim.workspaces.metadata.0.name
       }
     }
 
@@ -301,4 +306,5 @@ resource "kubernetes_pod" "main" {
       }
     }
   }
+
 }
