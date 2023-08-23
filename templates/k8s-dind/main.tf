@@ -11,6 +11,8 @@ terraform {
   }
 }
 
+# Variables and Locals
+# ===================================
 locals {
   namespace      = "coder"
   use_kubeconfig = false
@@ -29,6 +31,8 @@ locals {
   jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
 }
 
+# Providers
+# ===================================
 provider "coder" {
 }
 provider "kubernetes" {
@@ -36,9 +40,9 @@ provider "kubernetes" {
   config_path = local.use_kubeconfig == true ? "~/.kube/config" : null
 }
 
-data "coder_workspace" "me" {}
 
-
+# VM Data
+# ===================================
 resource "coder_metadata" "workspace_info" {
   count       = data.coder_workspace.me.start_count
   resource_id = kubernetes_pod.main[0].id
@@ -61,9 +65,8 @@ resource "coder_metadata" "workspace_info" {
   }
 }
 
-# PARAMS
-# ==================================================
-
+# Params
+# ===================================
 data "coder_parameter" "node" {
   name        = "Cluster Node"
   type        = "string"
@@ -81,7 +84,6 @@ data "coder_parameter" "node" {
     value = "vmi261078.contaboserver.net"
   }
 }
-
 data "coder_parameter" "disk_size" {
   name        = "PVC storage size"
   type        = "number"
@@ -95,7 +97,6 @@ data "coder_parameter" "disk_size" {
   mutable     = false
   default     = 10
 }
-
 data "coder_parameter" "image" {
   name         = "container_image"
   display_name = "Container Image"
@@ -105,7 +106,6 @@ data "coder_parameter" "image" {
   mutable      = true
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 }
-
 data "coder_parameter" "dotfiles_uri" {
   name         = "dotfiles_uri"
   display_name = "dotfiles URI"
@@ -118,7 +118,6 @@ data "coder_parameter" "dotfiles_uri" {
   type         = "string"
   mutable      = true
 }
-
 data "coder_parameter" "jupyter" {
   name        = "Jupyter IDE type"
   type        = "string"
@@ -139,9 +138,9 @@ data "coder_parameter" "jupyter" {
   }
 }
 
-# APPS
-# ================================
 
+# Applications
+# ================================
 resource "coder_app" "code-server" {
   agent_id     = coder_agent.main.id
   slug         = "code-server"
@@ -157,7 +156,6 @@ resource "coder_app" "code-server" {
     threshold = 10
   }
 }
-
 resource "coder_app" "jupyter" {
   agent_id     = coder_agent.main.id
   slug          = "j"
@@ -173,7 +171,6 @@ resource "coder_app" "jupyter" {
     threshold = 20
   }
 }
-
 resource "coder_app" "filebrowser" {
   agent_id     = coder_agent.main.id
   display_name = "File Browser"
@@ -184,9 +181,9 @@ resource "coder_app" "filebrowser" {
   share        = "owner"
 }
 
-# CONTAINER
-# =================================================
 
+# Agent Setup
+# =================================================
 resource "coder_agent" "main" {
   arch = "amd64"
   os   = "linux"
@@ -198,9 +195,12 @@ resource "coder_agent" "main" {
 
     sudo dockerd -H tcp://0.0.0.0:2375 >/dev/null 2>&1 &
 
+    # Create user data directory
+    mkdir -p ~/data
+
     # Install and start filebrowser
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-    filebrowser --noauth -r ~/home/coder >/tmp/filebrowser.log 2>&1 &
+    filebrowser --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
@@ -262,39 +262,8 @@ resource "coder_agent" "main" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "home" {
-  metadata {
-    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
-    namespace = local.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-pvc"
-      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
-      "app.kubernetes.io/part-of"  = "coder"
-      // Coder specific labels.
-      "com.coder.resource"       = "true"
-      "com.coder.workspace.id"   = data.coder_workspace.me.id
-      "com.coder.workspace.name" = data.coder_workspace.me.name
-      "com.coder.user.id"        = data.coder_workspace.me.owner_id
-      "com.coder.user.username"  = data.coder_workspace.me.owner
-    }
-    annotations = {
-      "com.coder.user.email" = data.coder_workspace.me.owner_email
-    }
-  }
-  wait_until_bound = false
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = "${data.coder_parameter.disk_size.value}Gi"
-      }
-    }
-  }
-  lifecycle {
-    ignore_changes = all
-  }
-}
-
+# Pod Setup
+# =================================================
 resource "kubernetes_pod" "main" {
   count = data.coder_workspace.me.start_count
   metadata {
@@ -396,3 +365,39 @@ resource "kubernetes_pod" "main" {
     }
   }
 }
+resource "kubernetes_persistent_volume_claim" "home" {
+  metadata {
+    name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
+    namespace = local.namespace
+    labels = {
+      "app.kubernetes.io/name"     = "coder-pvc"
+      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
+      "app.kubernetes.io/part-of"  = "coder"
+      // Coder specific labels.
+      "com.coder.resource"       = "true"
+      "com.coder.workspace.id"   = data.coder_workspace.me.id
+      "com.coder.workspace.name" = data.coder_workspace.me.name
+      "com.coder.user.id"        = data.coder_workspace.me.owner_id
+      "com.coder.user.username"  = data.coder_workspace.me.owner
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace.me.owner_email
+    }
+  }
+  wait_until_bound = false
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${data.coder_parameter.disk_size.value}Gi"
+      }
+    }
+  }
+  lifecycle {
+    ignore_changes = all
+  }
+}
+
+# Empties
+# ===================================
+data "coder_workspace" "me" {}

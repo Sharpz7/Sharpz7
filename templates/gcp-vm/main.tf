@@ -11,30 +11,35 @@ terraform {
   }
 }
 
-provider "coder" {
-}
 
+# Variables and Locals
+# ===================================
 locals {
   zone         = "us-central1-a"
   machine_type = "n1-standard-4"
   gpu          = "nvidia-tesla-v100"
-}
 
+  jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
+
+  linux_user = "coder"
+}
 variable "project_id" {
   description = "Which Google Compute Project should your workspace live in?"
 }
 
+
+# Providers
+# ===================================
+provider "coder" {
+}
 provider "google" {
   zone    = local.zone
   project = var.project_id
 }
 
-data "google_compute_default_service_account" "default" {
-}
 
-data "coder_workspace" "me" {
-}
-
+# Coder Params
+# ===================================
 data "coder_parameter" "dotfiles_uri" {
   name         = "dotfiles_uri"
   display_name = "dotfiles URI"
@@ -47,7 +52,50 @@ data "coder_parameter" "dotfiles_uri" {
   type         = "string"
   mutable      = true
 }
+data "coder_parameter" "jupyter" {
+  name        = "Jupyter IDE type"
+  type        = "string"
+  description = "What type of Jupyter do you want?"
+  mutable     = true
+  default     = "lab"
+  icon        = "/icon/jupyter.svg"
 
+  option {
+    name = "Jupyter Lab"
+    value = "lab"
+    icon = "https://raw.githubusercontent.com/gist/egormkn/672764e7ce3bdaf549b62a5e70eece79/raw/559e34c690ea4765001d4ba0e715106edea7439f/jupyter-lab.svg"
+  }
+  option {
+    name = "Jupyter Notebook"
+    value = "notebook"
+    icon = "https://codingbootcamps.io/wp-content/uploads/jupyter_notebook.png"
+  }
+}
+
+
+# Displayed Args
+# ===================================
+resource "coder_metadata" "workspace_info" {
+  count       = data.coder_workspace.me.start_count
+  resource_id = google_compute_instance.dev[0].id
+
+  item {
+    key   = "Machine Type"
+    value = google_compute_instance.dev[0].machine_type
+  }
+  item {
+    key = "GPU Type"
+    value   = local.gpu
+  }
+  item {
+    key   = "VM Zone"
+    value = local.zone
+  }
+}
+
+
+# Storage
+# ===================================
 resource "google_compute_disk" "root" {
   name  = "coder-${data.coder_workspace.me.id}-root"
   size  = 100
@@ -58,7 +106,60 @@ resource "google_compute_disk" "root" {
     ignore_changes = [name, image]
   }
 }
+resource "coder_metadata" "home_info" {
+  resource_id = google_compute_disk.root.id
 
+  item {
+    key   = "size"
+    value = "${google_compute_disk.root.size} GiB"
+  }
+}
+
+# Resources
+# =====================================
+resource "coder_app" "code-server" {
+  agent_id     = coder_agent.main.id
+  slug         = "code-server"
+  display_name = "code-server"
+  icon         = "/icon/code.svg"
+  url          = "http://localhost:13337?folder=/home/coder"
+  subdomain    = false
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://localhost:13337/healthz"
+    interval  = 3
+    threshold = 10
+  }
+}
+resource "coder_app" "jupyter" {
+  agent_id     = coder_agent.main.id
+  slug          = "j"
+  display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
+  icon          = "/icon/jupyter.svg"
+  url           = "http://localhost:8888/"
+  share         = "owner"
+  subdomain     = true
+
+  healthcheck {
+    url       = "http://localhost:8888/healthz/"
+    interval  = 10
+    threshold = 20
+  }
+}
+resource "coder_app" "filebrowser" {
+  agent_id     = coder_agent.main.id
+  display_name = "File Browser"
+  slug         = "filebrowser"
+  icon         = "https://raw.githubusercontent.com/matifali/logos/main/database.svg"
+  url          = "http://localhost:8070"
+  subdomain    = true
+  share        = "owner"
+}
+
+
+# VM Setup
+# =====================================
 resource "coder_agent" "main" {
   auth                   = "google-instance-identity"
   arch                   = "amd64"
@@ -69,14 +170,22 @@ resource "coder_agent" "main" {
 
     sudo apt install -y git python3-distutils python3-apt neofetch
 
+    # Jupyter
+    pip3 install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
+    jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" --port=8888 >/tmp/jupyter.log 2>&1 &
+
+    # FileBrowser
+    mkdir -p ~/data
+    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+    filebrowser -p 8070 --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
+
+    # Code-Server
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
-
     if [ -n "$DOTFILES_URI" ]; then
       echo "Installing dotfiles from $DOTFILES_URI"
       coder dotfiles -y "$DOTFILES_URI"
     fi
-
     code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
   EOT
 
@@ -146,24 +255,6 @@ resource "coder_agent" "main" {
     EOT
   }
 }
-
-# code-server
-resource "coder_app" "code-server" {
-  agent_id     = coder_agent.main.id
-  slug         = "code-server"
-  display_name = "code-server"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
-  subdomain    = false
-  share        = "owner"
-
-  healthcheck {
-    url       = "http://localhost:13337/healthz"
-    interval  = 3
-    threshold = 10
-  }
-}
-
 resource "google_compute_instance" "dev" {
   zone         = local.zone
   count        = data.coder_workspace.me.start_count
@@ -206,38 +297,16 @@ if ! id -u "${local.linux_user}" >/dev/null 2>&1; then
   echo "${local.linux_user} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/coder-user
 fi
 
+echo 'export PATH=$PATH:/home/coder/.local/bin' >> /etc/profile
+
 exec sudo -u "${local.linux_user}" sh -c '${coder_agent.main.init_script}'
 EOMETA
 }
 
-locals {
-  # Ensure Coder username is a valid Linux username
-  linux_user = "coder"
+# Empty
+# ====================================
+data "google_compute_default_service_account" "default" {
 }
 
-resource "coder_metadata" "workspace_info" {
-  count       = data.coder_workspace.me.start_count
-  resource_id = google_compute_instance.dev[0].id
-
-  item {
-    key   = "Machine Type"
-    value = google_compute_instance.dev[0].machine_type
-  }
-  item {
-    key = "GPU Type"
-    value   = local.gpu
-  }
-  item {
-    key   = "VM Zone"
-    value = local.zone
-  }
-}
-
-resource "coder_metadata" "home_info" {
-  resource_id = google_compute_disk.root.id
-
-  item {
-    key   = "size"
-    value = "${google_compute_disk.root.size} GiB"
-  }
+data "coder_workspace" "me" {
 }

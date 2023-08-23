@@ -167,7 +167,7 @@ resource "kubernetes_pod" "main" {
 
       env {
         name  = "CODER_INNER_IMAGE"
-        value = "ghcr.io/coder/envbuilder:0.2.1"
+        value = "sharp6292/envbuilder:latest"
       }
 
       env {

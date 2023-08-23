@@ -14,6 +14,9 @@ scripts:
     docker build --network=host -t sharp6292/coder-gpu -f dockerfiles/coder-gpu.Dockerfile .
     docker push sharp6292/coder-gpu
 
+    docker build --network=host -t sharp6292/envbuilder -f dockerfiles/envbuilder.Dockerfile .
+    docker push sharp6292/envbuilder
+
   gcp_template: |
     coder template create --var project_id=alberta-389816
 
