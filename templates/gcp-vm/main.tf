@@ -171,6 +171,7 @@ resource "coder_agent" "main" {
     sudo apt install -y git python3-distutils python3-apt neofetch
 
     # Jupyter
+    export PATH=$PATH:/home/coder/.local/bin
     pip3 install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" --port=8888 >/tmp/jupyter.log 2>&1 &
 

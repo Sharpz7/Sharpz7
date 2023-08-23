@@ -62,6 +62,7 @@ resource "coder_agent" "main" {
   arch           = "amd64"
   startup_script = <<EOT
     #!/bin/bash
+
     # home folder can be empty, so copying default bash settings
     if [ ! -f ~/.profile ]; then
       cp /etc/skel/.profile $HOME
@@ -113,8 +114,8 @@ resource "kubernetes_persistent_volume_claim" "home" {
 
 locals {
   git_url = "https://github.com/craiglpeters/kubernetes-devcontainer.git"
-  init_script = replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")
-  coder_inner_envs = "INIT_SCRIPT=${local.init_script},GIT_URL=${local.git_url}"
+  init_script = replace(coder_agent.main.startup_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")
+  coder_inner_envs = "INIT_SCRIPT=${local.init_script},GIT_URL=${local.git_url},CODER_AGENT_URL=${data.coder_workspace.me.access_url}"
 }
 
 resource "kubernetes_pod" "main" {
@@ -182,7 +183,7 @@ resource "kubernetes_pod" "main" {
 
       env {
         name  = "CODER_BOOTSTRAP_SCRIPT"
-        value = coder_agent.main.init_script
+        value = "/.envbuilder/bin/envbuilder"
       }
 
       env {
