@@ -41,9 +41,9 @@ resource "coder_agent" "main" {
   startup_script_timeout = 180
   startup_script         = <<-EOT
     set -e
-    sudo apt install software-properties-common
-    sudo add-apt-repository -y ppa:graphics-drivers/ppa
-    sudo apt-get update && apt-get install -y nvidia-driver-460
+    # sudo apt install software-properties-common
+    # sudo add-apt-repository -y ppa:graphics-drivers/ppa
+    # sudo apt-get update && apt-get install -y nvidia-driver-460
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
@@ -69,7 +69,7 @@ data "coder_parameter" "image" {
   name         = "container_image"
   display_name = "Container Image"
   description = "What container image and language do you want?"
-  default      = "sharp6292/coder-base:latest"
+  default      = "sharp6292/coder-gpu:latest"
   type         = "string"
   mutable      = true
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
@@ -143,7 +143,6 @@ resource "google_compute_instance" "dev" {
 
   boot_disk {
     initialize_params {
-      image = module.gce-container.source_image
       size  = 50
     }
   }
@@ -152,17 +151,6 @@ resource "google_compute_instance" "dev" {
     email  = data.google_compute_default_service_account.default.email
     scopes = ["cloud-platform"]
   }
-
-  metadata_startup_script = <<EOMETA
-#!/usr/bin/env sh
-set -eux
-
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-&& curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
-&& curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list \
-&& sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit \
-&& sudo systemctl restart docker
-EOMETA
 
   metadata = {
     "gce-container-declaration" = module.gce-container.metadata_value
