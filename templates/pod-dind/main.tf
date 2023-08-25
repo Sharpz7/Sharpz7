@@ -6,7 +6,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.12.1"
+      version = "~> 2.3.2"
     }
   }
 }
@@ -14,7 +14,7 @@ terraform {
 # Variables and Locals
 # ===================================
 locals {
-  namespace = "coder"
+  namespace      = "coder"
   use_kubeconfig = false
 
   node_resources = {
@@ -29,18 +29,6 @@ locals {
   }
 
   jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
-}
-variable "create_tun" {
-  type        = bool
-  sensitive   = true
-  description = "Add a TUN device to the workspace."
-  default     = false
-}
-variable "create_fuse" {
-  type        = bool
-  description = "Add a FUSE device to the workspace."
-  sensitive   = true
-  default     = false
 }
 
 # Providers
@@ -106,7 +94,7 @@ data "coder_parameter" "disk_size" {
     max       = 50
     monotonic = "increasing"
   }
-  mutable     = true
+  mutable     = false
   default     = 10
 }
 data "coder_parameter" "image" {
@@ -150,6 +138,7 @@ data "coder_parameter" "jupyter" {
   }
 }
 
+
 # Applications
 # ================================
 resource "coder_app" "code-server" {
@@ -157,7 +146,7 @@ resource "coder_app" "code-server" {
   slug         = "code-server"
   display_name = "code-server"
   icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
+  url          = "http://localhost:13337?folder=/home/coder/projects"
   subdomain    = false
   share        = "owner"
 
@@ -196,8 +185,9 @@ resource "coder_app" "filebrowser" {
 # Agent Setup
 # =================================================
 resource "coder_agent" "main" {
-  os             = "linux"
-  arch           = "amd64"
+  arch = "amd64"
+  os   = "linux"
+
   startup_script = <<EOT
     set -e
     # start jupyter
@@ -207,7 +197,6 @@ resource "coder_agent" "main" {
 
     # Create user data directory
     mkdir -p ~/data
-    mkdir -p ~/projects
 
     # Install and start filebrowser
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
@@ -224,8 +213,7 @@ resource "coder_agent" "main" {
     code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
   EOT
 
-  dir = "/home/coder/projects"
-
+  dir = "/home/coder"
 
   env = {
     GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
@@ -278,23 +266,48 @@ resource "coder_agent" "main" {
 # =================================================
 resource "kubernetes_pod" "main" {
   count = data.coder_workspace.me.start_count
-
   metadata {
     name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
     namespace = local.namespace
   }
-
   spec {
-    restart_policy = "Never"
-
+    node_selector = {
+      "kubernetes.io/hostname" = "${data.coder_parameter.node.value}"
+    }
     container {
-      name              = "dev"
-      image             = "ghcr.io/coder/envbox:latest"
-      image_pull_policy = "Always"
-      command           = ["/envbox", "docker"]
-
+      name    = "dev"
+      image   = data.coder_parameter.image.value
+      command = ["sh", "-c", coder_agent.main.init_script]
       security_context {
         privileged = true
+      }
+      env {
+        name  = "CODER_AGENT_TOKEN"
+        value = coder_agent.main.token
+      }
+      volume_mount {
+        mount_path = "/home/coder/projects"
+        name       = "projects"
+        read_only  = false
+      }
+      volume_mount {
+        mount_path = "/var/lib/docker"
+        name       = "dind-storage"
+        read_only  = false
+      }
+      volume_mount {
+        mount_path = "/lib/modules"
+        name       = "modules"
+        read_only  = true
+      }
+      volume_mount {
+        mount_path = "/sys/fs/cgroup"
+        name       = "cgroup"
+        read_only  = false
+      }
+      env {
+        name  = "DOCKER_HOST"
+        value = "0.0.0.0:2375"
       }
 
       resources {
@@ -307,119 +320,10 @@ resource "kubernetes_pod" "main" {
           "memory" = "${local.node_resources[data.coder_parameter.node.value]["memory"]}Gi"
         }
       }
-
-      env {
-        name  = "CODER_AGENT_TOKEN"
-        value = coder_agent.main.token
-      }
-
-      env {
-        name  = "CODER_AGENT_URL"
-        value = data.coder_workspace.me.access_url
-      }
-
-      env {
-        name  = "CODER_INNER_IMAGE"
-        value = "sharp6292/coder-base:latest"
-      }
-
-      env {
-        name  = "CODER_INNER_USERNAME"
-        value = "coder"
-      }
-
-      env {
-        name  = "CODER_BOOTSTRAP_SCRIPT"
-        value = coder_agent.main.init_script
-      }
-
-      env {
-        name  = "CODER_MOUNTS"
-        value = "/home/coder:/home/coder"
-      }
-
-      env {
-        name  = "CODER_ADD_FUSE"
-        value = var.create_fuse
-      }
-
-      env {
-        name  = "CODER_INNER_HOSTNAME"
-        value = data.coder_workspace.me.name
-      }
-
-      env {
-        name  = "CODER_ADD_TUN"
-        value = var.create_tun
-      }
-
-      env {
-        name = "CODER_CPUS"
-        value_from {
-          resource_field_ref {
-            resource = "limits.cpu"
-          }
-        }
-      }
-
-      env {
-        name = "CODER_MEMORY"
-        value_from {
-          resource_field_ref {
-            resource = "limits.memory"
-          }
-        }
-      }
-
-      volume_mount {
-        mount_path = "/home/coder"
-        name       = "home"
-        read_only  = false
-        sub_path   = "home"
-      }
-
-      volume_mount {
-        mount_path = "/var/lib/coder/docker"
-        name       = "home"
-        sub_path   = "cache/docker"
-      }
-
-      volume_mount {
-        mount_path = "/var/lib/coder/containers"
-        name       = "home"
-        sub_path   = "cache/containers"
-      }
-
-      volume_mount {
-        mount_path = "/var/lib/sysbox"
-        name       = "sysbox"
-      }
-
-      volume_mount {
-        mount_path = "/var/lib/containers"
-        name       = "home"
-        sub_path   = "envbox/containers"
-      }
-
-      volume_mount {
-        mount_path = "/var/lib/docker"
-        name       = "home"
-        sub_path   = "envbox/docker"
-      }
-
-      volume_mount {
-        mount_path = "/usr/src"
-        name       = "usr-src"
-      }
-
-      volume_mount {
-        mount_path = "/lib/modules"
-        name       = "lib-modules"
-      }
     }
 
     volume {
-      name = "home"
+      name = "projects"
       persistent_volume_claim {
         claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
         read_only  = false
@@ -427,23 +331,22 @@ resource "kubernetes_pod" "main" {
     }
 
     volume {
-      name = "sysbox"
+      name = "dind-storage"
       empty_dir {}
     }
 
     volume {
-      name = "usr-src"
-      host_path {
-        path = "/usr/src"
-        type = ""
-      }
-    }
-
-    volume {
-      name = "lib-modules"
+      name = "modules"
       host_path {
         path = "/lib/modules"
-        type = ""
+        type = "Directory"
+      }
+    }
+    volume {
+      name = "cgroup"
+      host_path {
+        path = "/sys/fs/cgroup"
+        type = "Directory"
       }
     }
   }
@@ -452,20 +355,6 @@ resource "kubernetes_persistent_volume_claim" "home" {
   metadata {
     name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-home"
     namespace = local.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-pvc"
-      "app.kubernetes.io/instance" = "coder-pvc-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
-      "app.kubernetes.io/part-of"  = "coder"
-      // Coder specific labels.
-      "com.coder.resource"       = "true"
-      "com.coder.workspace.id"   = data.coder_workspace.me.id
-      "com.coder.workspace.name" = data.coder_workspace.me.name
-      "com.coder.user.id"        = data.coder_workspace.me.owner_id
-      "com.coder.user.username"  = data.coder_workspace.me.owner
-    }
-    annotations = {
-      "com.coder.user.email" = data.coder_workspace.me.owner_email
-    }
   }
   wait_until_bound = false
   spec {
@@ -476,12 +365,10 @@ resource "kubernetes_persistent_volume_claim" "home" {
       }
     }
   }
-
   lifecycle {
     ignore_changes = all
   }
 }
-
 
 # Empties
 # ===================================

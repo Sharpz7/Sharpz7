@@ -6,7 +6,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.3.2"
+      version = "~> 2.12.1"
     }
   }
 }
@@ -14,7 +14,7 @@ terraform {
 # Variables and Locals
 # ===================================
 locals {
-  namespace      = "coder"
+  namespace = "coder"
   use_kubeconfig = false
 
   node_resources = {
@@ -29,6 +29,18 @@ locals {
   }
 
   jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
+}
+variable "create_tun" {
+  type        = bool
+  sensitive   = true
+  description = "Add a TUN device to the workspace."
+  default     = false
+}
+variable "create_fuse" {
+  type        = bool
+  description = "Add a FUSE device to the workspace."
+  sensitive   = true
+  default     = false
 }
 
 # Providers
@@ -94,7 +106,7 @@ data "coder_parameter" "disk_size" {
     max       = 50
     monotonic = "increasing"
   }
-  mutable     = false
+  mutable     = true
   default     = 10
 }
 data "coder_parameter" "image" {
@@ -138,7 +150,6 @@ data "coder_parameter" "jupyter" {
   }
 }
 
-
 # Applications
 # ================================
 resource "coder_app" "code-server" {
@@ -146,8 +157,8 @@ resource "coder_app" "code-server" {
   slug         = "code-server"
   display_name = "code-server"
   icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
-  subdomain    = false
+  url          = "http://localhost:13337?folder=/home/coder/projects"
+  subdomain    = true
   share        = "owner"
 
   healthcheck {
@@ -176,7 +187,7 @@ resource "coder_app" "filebrowser" {
   display_name = "File Browser"
   slug         = "filebrowser"
   icon         = "https://raw.githubusercontent.com/matifali/logos/main/database.svg"
-  url          = "http://localhost:8080"
+  url          = "http://localhost:8070"
   subdomain    = true
   share        = "owner"
 }
@@ -185,22 +196,20 @@ resource "coder_app" "filebrowser" {
 # Agent Setup
 # =================================================
 resource "coder_agent" "main" {
-  arch = "amd64"
-  os   = "linux"
-
+  os             = "linux"
+  arch           = "amd64"
   startup_script = <<EOT
     set -e
     # start jupyter
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/tmp/jupyter.log 2>&1 &
 
-    sudo dockerd -H tcp://0.0.0.0:2375 >/dev/null 2>&1 &
-
     # Create user data directory
     mkdir -p ~/data
+    mkdir -p ~/projects
 
     # Install and start filebrowser
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-    filebrowser --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
+    filebrowser --port 8070 --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
 
     curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
     sleep 5
@@ -213,7 +222,8 @@ resource "coder_agent" "main" {
     code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
   EOT
 
-  dir = "/home/coder"
+  dir = "/home/coder/"
+
 
   env = {
     GIT_AUTHOR_NAME     = "${data.coder_workspace.me.owner}"
@@ -250,78 +260,29 @@ resource "coder_agent" "main" {
     key          = "6_disk_usage"
     script       = "coder stat disk $HOME"
   }
-
-  metadata {
-    display_name = "Word of the Day"
-    interval     = 86400
-    key          = "5_word_of_the_day"
-    script       = <<EOT
-      #!/bin/bash
-      curl -o - --silent https://www.merriam-webster.com/word-of-the-day 2>&1 | awk ' $0 ~ "Word of the Day: [A-z]+" { print $5; exit }'
-    EOT
-  }
 }
 
 # Pod Setup
 # =================================================
 resource "kubernetes_pod" "main" {
   count = data.coder_workspace.me.start_count
+
   metadata {
     name      = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
     namespace = local.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-workspace"
-      "app.kubernetes.io/instance" = "coder-workspace-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}"
-      "app.kubernetes.io/part-of"  = "coder"
-      // Coder specific labels.
-      "com.coder.resource"       = "true"
-      "com.coder.workspace.id"   = data.coder_workspace.me.id
-      "com.coder.workspace.name" = data.coder_workspace.me.name
-      "com.coder.user.id"        = data.coder_workspace.me.owner_id
-      "com.coder.user.username"  = data.coder_workspace.me.owner
-    }
-    annotations = {
-      "com.coder.user.email" = data.coder_workspace.me.owner_email
-    }
   }
+
   spec {
-    node_selector = {
-      "kubernetes.io/hostname" = "${data.coder_parameter.node.value}"
-    }
+    restart_policy = "Never"
+
     container {
-      name    = "dev"
-      image   = data.coder_parameter.image.value
-      command = ["sh", "-c", coder_agent.main.init_script]
+      name              = "dev"
+      image             = "ghcr.io/coder/envbox:latest"
+      image_pull_policy = "Always"
+      command           = ["/envbox", "docker"]
+
       security_context {
         privileged = true
-      }
-      env {
-        name  = "CODER_AGENT_TOKEN"
-        value = coder_agent.main.token
-      }
-      volume_mount {
-        mount_path = "/home/coder/projects"
-        name       = "projects"
-        read_only  = false
-      }
-      volume_mount {
-        mount_path = "/var/lib/docker"
-        name       = "dind-storage"
-        read_only  = false
-      }
-      volume_mount {
-        mount_path = "/lib/modules"
-        name       = "modules"
-        read_only  = true
-      }
-      volume_mount {
-        mount_path = "/sys/fs/cgroup"
-        name       = "cgroup"
-        read_only  = false
-      }
-      env {
-        name  = "DOCKER_HOST"
-        value = "0.0.0.0:2375"
       }
 
       resources {
@@ -334,10 +295,119 @@ resource "kubernetes_pod" "main" {
           "memory" = "${local.node_resources[data.coder_parameter.node.value]["memory"]}Gi"
         }
       }
+
+      env {
+        name  = "CODER_AGENT_TOKEN"
+        value = coder_agent.main.token
+      }
+
+      env {
+        name  = "CODER_AGENT_URL"
+        value = data.coder_workspace.me.access_url
+      }
+
+      env {
+        name  = "CODER_INNER_IMAGE"
+        value = "sharp6292/coder-base:latest"
+      }
+
+      env {
+        name  = "CODER_INNER_USERNAME"
+        value = "coder"
+      }
+
+      env {
+        name  = "CODER_BOOTSTRAP_SCRIPT"
+        value = coder_agent.main.init_script
+      }
+
+      env {
+        name  = "CODER_MOUNTS"
+        value = "/home/coder:/home/coder"
+      }
+
+      env {
+        name  = "CODER_ADD_FUSE"
+        value = var.create_fuse
+      }
+
+      env {
+        name  = "CODER_INNER_HOSTNAME"
+        value = data.coder_workspace.me.name
+      }
+
+      env {
+        name  = "CODER_ADD_TUN"
+        value = var.create_tun
+      }
+
+      env {
+        name = "CODER_CPUS"
+        value_from {
+          resource_field_ref {
+            resource = "limits.cpu"
+          }
+        }
+      }
+
+      env {
+        name = "CODER_MEMORY"
+        value_from {
+          resource_field_ref {
+            resource = "limits.memory"
+          }
+        }
+      }
+
+      volume_mount {
+        mount_path = "/home/coder"
+        name       = "home"
+        read_only  = false
+        sub_path   = "home"
+      }
+
+      volume_mount {
+        mount_path = "/var/lib/coder/docker"
+        name       = "home"
+        sub_path   = "cache/docker"
+      }
+
+      volume_mount {
+        mount_path = "/var/lib/coder/containers"
+        name       = "home"
+        sub_path   = "cache/containers"
+      }
+
+      volume_mount {
+        mount_path = "/var/lib/sysbox"
+        name       = "sysbox"
+      }
+
+      volume_mount {
+        mount_path = "/var/lib/containers"
+        name       = "home"
+        sub_path   = "envbox/containers"
+      }
+
+      volume_mount {
+        mount_path = "/var/lib/docker"
+        name       = "home"
+        sub_path   = "envbox/docker"
+      }
+
+      volume_mount {
+        mount_path = "/usr/src"
+        name       = "usr-src"
+      }
+
+      volume_mount {
+        mount_path = "/lib/modules"
+        name       = "lib-modules"
+      }
     }
 
     volume {
-      name = "projects"
+      name = "home"
       persistent_volume_claim {
         claim_name = kubernetes_persistent_volume_claim.home.metadata.0.name
         read_only  = false
@@ -345,22 +415,23 @@ resource "kubernetes_pod" "main" {
     }
 
     volume {
-      name = "dind-storage"
+      name = "sysbox"
       empty_dir {}
     }
 
     volume {
-      name = "modules"
+      name = "usr-src"
       host_path {
-        path = "/lib/modules"
-        type = "Directory"
+        path = "/usr/src"
+        type = ""
       }
     }
+
     volume {
-      name = "cgroup"
+      name = "lib-modules"
       host_path {
-        path = "/sys/fs/cgroup"
-        type = "Directory"
+        path = "/lib/modules"
+        type = ""
       }
     }
   }
@@ -393,10 +464,12 @@ resource "kubernetes_persistent_volume_claim" "home" {
       }
     }
   }
+
   lifecycle {
     ignore_changes = all
   }
 }
+
 
 # Empties
 # ===================================
