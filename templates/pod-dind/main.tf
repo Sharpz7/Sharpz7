@@ -94,7 +94,7 @@ data "coder_parameter" "disk_size" {
     max       = 50
     monotonic = "increasing"
   }
-  mutable     = false
+  mutable     = true
   default     = 10
 }
 data "coder_parameter" "image" {
@@ -249,16 +249,6 @@ resource "coder_agent" "main" {
     interval     = 600
     key          = "6_disk_usage"
     script       = "coder stat disk $HOME"
-  }
-
-  metadata {
-    display_name = "Word of the Day"
-    interval     = 86400
-    key          = "5_word_of_the_day"
-    script       = <<EOT
-      #!/bin/bash
-      curl -o - --silent https://www.merriam-webster.com/word-of-the-day 2>&1 | awk ' $0 ~ "Word of the Day: [A-z]+" { print $5; exit }'
-    EOT
   }
 }
 
