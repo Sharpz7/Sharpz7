@@ -211,20 +211,16 @@ resource "coder_agent" "main" {
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
     filebrowser --port 8070 --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
 
-    # curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
-    # sleep 5
-
-    # if [ -n "$DOTFILES_URI" ]; then
-    #   echo "Installing dotfiles from $DOTFILES_URI"
-    #   coder dotfiles -y "$DOTFILES_URI"
-    # fi
-
-    # code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
 
     mkdir -p /tmp/code-server
     HASH=$(curl https://update.code.visualstudio.com/api/commits/stable/server-linux-x64-web | cut -d '"' -f 2)
     wget -O- https://az764295.vo.msecnd.net/stable/$HASH/vscode-server-linux-x64-web.tar.gz | tar -xz -C /tmp/code-server --strip-components=1 >/dev/null 2>&1
-    echo "Starting VS Code Web"
+
+    if [ -n "$DOTFILES_URI" ]; then
+      echo "Installing dotfiles from $DOTFILES_URI"
+      coder dotfiles -y "$DOTFILES_URI"
+    fi
+
     /tmp/code-server/bin/code-server --accept-server-license-terms serve-local --without-connection-token --telemetry-level off >/dev/null 2>&1 &
   EOT
 
