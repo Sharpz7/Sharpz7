@@ -119,18 +119,12 @@ resource "coder_metadata" "home_info" {
 # =====================================
 resource "coder_app" "code-server" {
   agent_id     = coder_agent.main.id
+  display_name = "VS Code Web"
   slug         = "code-server"
-  display_name = "code-server"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
-  subdomain    = false
+  url          = "http://localhost:8000?folder=/home/coder/projects"
+  icon         = "https://raw.githubusercontent.com/matifali/logos/main/code.svg"
+  subdomain    = true
   share        = "owner"
-
-  healthcheck {
-    url       = "http://localhost:13337/healthz"
-    interval  = 3
-    threshold = 10
-  }
 }
 resource "coder_app" "jupyter" {
   agent_id     = coder_agent.main.id
@@ -177,17 +171,20 @@ resource "coder_agent" "main" {
 
     # FileBrowser
     mkdir -p ~/data
+    mkdir -p ~/projects
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
     filebrowser -p 8070 --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
 
-    # Code-Server
-    curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.16.1 | tee code-server-install.log
-    sleep 5
+    mkdir -p /tmp/code-server
+    HASH=$(curl https://update.code.visualstudio.com/api/commits/stable/server-linux-x64-web | cut -d '"' -f 2)
+    wget -O- https://az764295.vo.msecnd.net/stable/$HASH/vscode-server-linux-x64-web.tar.gz | tar -xz -C /tmp/code-server --strip-components=1 >/dev/null 2>&1
+
     if [ -n "$DOTFILES_URI" ]; then
       echo "Installing dotfiles from $DOTFILES_URI"
       coder dotfiles -y "$DOTFILES_URI"
     fi
-    code-server --auth none --port 13337 >/tmp/code-server.log 2>&1 &
+
+    /tmp/code-server/bin/code-server --accept-server-license-terms serve-local --without-connection-token --telemetry-level off >/dev/null 2>&1 &
   EOT
 
   env = {

@@ -141,21 +141,6 @@ data "coder_parameter" "jupyter" {
 
 # Applications
 # ================================
-# resource "coder_app" "code-server" {
-#   agent_id     = coder_agent.main.id
-#   slug         = "code-server"
-#   display_name = "code-server"
-#   icon         = "/icon/code.svg"
-#   url          = "http://localhost:13337?folder=/home/coder/projects"
-#   subdomain    = false
-#   share        = "owner"
-
-#   healthcheck {
-#     url       = "http://localhost:13337/healthz"
-#     interval  = 3
-#     threshold = 10
-#   }
-# }
 resource "coder_app" "code-server" {
   agent_id     = coder_agent.main.id
   display_name = "VS Code Web"
@@ -206,11 +191,11 @@ resource "coder_agent" "main" {
 
     # Create user data directory
     mkdir -p ~/data
+    mkdir -p ~/projects
 
     # Install and start filebrowser
     curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
     filebrowser --port 8070 --noauth --root /home/coder/data >/tmp/filebrowser.log 2>&1 &
-
 
     mkdir -p /tmp/code-server
     HASH=$(curl https://update.code.visualstudio.com/api/commits/stable/server-linux-x64-web | cut -d '"' -f 2)
