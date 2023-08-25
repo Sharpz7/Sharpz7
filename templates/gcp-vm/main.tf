@@ -247,14 +247,6 @@ resource "coder_agent" "main" {
       (nvidia-smi 1> /dev/null 2> /dev/null) && (nvidia-smi --query-gpu=utilization.memory --format=csv,noheader,nounits | awk '{printf "%s%%", $1}') || echo "N/A"
     EOT
   }
-  metadata {
-    display_name = "Word of the Day"
-    interval     = 86400
-    key          = "5_word_of_the_day"
-    script       = <<EOT
-      curl -o - --silent https://www.merriam-webster.com/word-of-the-day 2>&1 | awk ' $0 ~ "Word of the Day: [A-z]+" { print $5; exit }'
-    EOT
-  }
 }
 resource "google_compute_instance" "dev" {
   zone         = local.zone
