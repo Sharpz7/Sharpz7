@@ -193,7 +193,7 @@ resource "coder_agent" "main" {
     # start jupyter
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" >/tmp/jupyter.log 2>&1 &
 
-    sudo dockerd -H tcp://0.0.0.0:2375 >/dev/null 2>&1 &
+    sudo dockerd -H tcp://0.0.0.0:2375 --dns 8.8.8.8 >/dev/null 2>&1 &
 
     # Create user data directory
     mkdir -p ~/data
