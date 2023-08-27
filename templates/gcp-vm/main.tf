@@ -129,7 +129,7 @@ resource "coder_app" "code-server" {
 resource "coder_app" "jupyter" {
   agent_id     = coder_agent.main.id
   slug          = "j"
-  display_name  = "jupyter ${data.coder_parameter.jupyter.value}"
+  display_name  = "Jupyter ${upper(data.coder_parameter.jupyter.value)}"
   icon          = "/icon/jupyter.svg"
   url           = "http://localhost:8888/"
   share         = "owner"
@@ -149,6 +149,15 @@ resource "coder_app" "filebrowser" {
   url          = "http://localhost:8070"
   subdomain    = true
   share        = "owner"
+}
+resource "coder_app" "testport" {
+  agent_id     = coder_agent.main.id
+  display_name = "Exposed Test Port (6262)"
+  slug         = "testport"
+  icon         = "https://cdn-icons-png.flaticon.com/512/2995/2995440.png"
+  url          = "http://localhost:6262"
+  subdomain    = true
+  share        = "public"
 }
 
 
