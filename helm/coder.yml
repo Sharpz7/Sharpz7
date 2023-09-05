@@ -100,3 +100,9 @@ coder:
       enable: true
       # coder.ingress.tls.secretName -- The name of the TLS secret to use.
       secretName: "coder-${DOMAIN_NAME}-tls"
+
+  securityContext:
+    runAsNonRoot: false
+    allowPrivilegeEscalation: false
+    runAsUser: 0
+    runAsGroup: 0

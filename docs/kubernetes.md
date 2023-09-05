@@ -59,12 +59,25 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/cer
 
 Follow this guide for Github Auth: https://coder.com/docs/v2/latest/admin/auth
 
+Note that the callback URL is https://coder.domain.com/api/v2/users/oauth2/github/callback
+
+Also note the permissions:
+
+Orgs/Members: Read Only
+Account/Email: Read Only
+
 ```bash
 export CODER_ID=XXXX
 export CODER_SECRET=XXXX
 ```
 
 And this guide for using git in coder: https://coder.com/docs/v2/latest/admin/git-providers
+
+Also note the permissions (All repo-level):
+
+- Content: Read/Write
+- Pull Requests: Read/Write
+- Workflows: Read/Write
 
 ```bash
 export CODER_GIT_ID=XXXX
