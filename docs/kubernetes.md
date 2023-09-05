@@ -107,7 +107,6 @@ export DOMAIN=nidus.mcaq.me
 curl -sfL https://get.k3s.io | sh -s server \
 --cluster-init \
 --flannel-backend=wireguard-native \
---flannel-iface=wg1 \
 --write-kubeconfig-mode 600 \
 --tls-san ${DOMAIN}
 ```
@@ -170,5 +169,3 @@ export DOMAIN=nidus.mcaq.me
 export DOMAIN_NAME=nidus-mcaq-me
 export EMAIL=adam.mcarthur62@gmail.com
 ```
-
-## Getting
