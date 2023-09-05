@@ -155,16 +155,3 @@ sudo nano /etc/systemd/system/k3s.service
 sudo systemctl daemon-reload
 sudo systemctl restart k3s
 ```
-
-
-# Installing tools on Kubernetes
-
-## Env Vars
-
-These are the Enviromental Variables that might be needed
-
-```bash
-export DOMAIN=nidus.mcaq.me
-export DOMAIN_NAME=nidus-mcaq-me
-export EMAIL=adam.mcarthur62@gmail.com
-```
