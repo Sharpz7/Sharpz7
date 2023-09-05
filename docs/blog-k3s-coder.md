@@ -23,41 +23,8 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/tra
 
 # Test if http://traefik.${DOMAIN}/dashboard/# works
 
-# Coder Install
-
-```bash
-# Install PostgreSQL
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install coder-db bitnami/postgresql \
-    --namespace coder \
-    --set auth.username=coder \
-    --set auth.password=coder \
-    --set auth.database=coder \
-    --set persistence.size=10Gi
-
-helm repo add coder-v2 https://helm.coder.com/v2
-```
 
 
-```bash
-kubectl create secret generic coder-db-url -n coder \
-   --from-literal=url="postgres://coder:coder@coder-db-postgresql.coder.svc.cluster.local:5432/coder?sslmode=disable"
-```
-
-```bash
-wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.yml \
-| envsubst \
-| helm install coder coder-v2/coder --namespace coder --values -
-```
-
-## For Updating
-
-```bash
-helm repo update
-wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.yml \
-| envsubst \
-| helm upgrade coder coder-v2/coder --namespace coder --values -
-```
 
 # KimAI Install
 
