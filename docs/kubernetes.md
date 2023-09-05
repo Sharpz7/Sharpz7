@@ -8,13 +8,13 @@ This document contains my personal Notes on VPS Setup, K3s setup and Kubernetes 
     - 1.2. [Firewall Management](#Handle-ssh-key-setup-and-stopping-root-logins)
     - 1.3. [UFW Firewall](#Use-ufw-to-manage-firewall)
 2. [K3s Setup](#k3s-setup)
-    - 2.1. [Helm](##installing-helm)
-    - 2.2. [KubeCTL](##Installing-Kubectl)
-    - 2.3. [K3s Server](##Installing-k3s)
-    - 2.4. [Installing Agents](##Installing-K3s-Agents)
-    - 2.5. [Debugging Tips](##Debugging)
+    - 2.1. [Helm](#installing-helm)
+    - 2.2. [KubeCTL](#Installing-Kubectl)
+    - 2.3. [K3s Server](#Installing-k3s)
+    - 2.4. [Installing Agents](#Installing-K3s-Agents)
+    - 2.5. [Debugging Tips](#Debugging)
 3. [Installing tools on Kubernetes](Installing-tools-on-Kubernetes)
-    - 3.1. [Env Vars](##Env-Vars)
+    - 3.1. [Env Vars](#Env-Vars)
 
 # VPS Setup
 
