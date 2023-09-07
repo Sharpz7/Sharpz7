@@ -64,6 +64,9 @@ sudo systemctl restart ssh
 ```bash
 sudo apt install ufw
 
+sudo ufw default allow outgoing
+sudo ufw default deny incoming
+
 # Add ssh ports
 sudo ufw allow 5522/tcp
 sudo ufw allow http
