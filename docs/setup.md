@@ -30,6 +30,13 @@ visudo
 # `adam   ALL=(ALL:ALL) ALL`
 ```
 
+Add this to your .bash_profile
+```bash
+if [ -f ~/.bashrc ]; then
+  . ~/.bashrc
+fi
+```
+
 Get putty here: https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
 
 ```bash
