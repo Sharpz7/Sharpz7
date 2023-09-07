@@ -122,6 +122,10 @@ Note that this assumes 1 ssh key across the servers.
 ```bash
 curl -sLS https://get.k3sup.dev | sh
 sudo install k3sup /usr/local/bin/
+
+# Set the following line on server and agents
+# adam ALL=(ALL) NOPASSWD: ALL
+visudo
 ```
 
 ```bash
