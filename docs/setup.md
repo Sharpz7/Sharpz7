@@ -128,14 +128,15 @@ sudo install k3sup /usr/local/bin/
 
 export SERVER_PORT=pppp
 export SERVER_IP=1.1.1.1
+export SERVER_USER=adam
 
 export AGENT_IP=0.0.0.0
 export AGENT_PORT=pppp
+export AGENT_USER=adam
 
-export USER=adam
 export SSH_KEY=$HOME/.ssh/compute.ssh
 
-k3sup join --ip $AGENT_IP --ssh-port $AGENT_PORT --server-ip $SERVER_IP --user $USER --ssh-key $SSH_KEY --server-ssh-port $SERVER_PORT
+k3sup join --ip $AGENT_IP --ssh-port $AGENT_PORT --server-ip $SERVER_IP --server-user $SERVER_USER --user $AGENT_USER --ssh-key $SSH_KEY --server-ssh-port $SERVER_PORT
 ```
 
 ### Removing an install
