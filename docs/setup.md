@@ -72,8 +72,13 @@ sudo ufw allow 5522/tcp
 sudo ufw allow http
 sudo ufw allow https
 
+ufw allow from 10.42.0.0/16 to any #pods
+ufw allow from 10.43.0.0/16 to any #services
+
 # For k3s
 sudo ufw allow 6443/tcp
+sudo ufw allow 9100/tcp
+ufw allow proto udp from any to any port 51820
 
 # Verify Rules
 sudo ufw show added

@@ -7,6 +7,7 @@ This document contains my personal notes on installing useful K8s Tools and obje
 1. [Env Vars](#useful-env-vars)
 2. [Setting Up Cert Manager](#Setting-Up-Cert-Manager)
 3. [Setting up Coder](#Setting-up-Coder)
+4. [Using GPUs on K3s](#Using-GPUs-on-K3s)
 4. [Middlewares](#useful-middlewares)
 
 # Useful Env Vars
@@ -117,6 +118,24 @@ helm repo update
 wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/coder.yml \
 | envsubst \
 | helm upgrade coder coder-v2/coder --namespace coder --values -
+```
+
+# Using GPUs on K3s
+
+```bash
+sudo apt-get install ubuntu-drivers-common
+sudo ubuntu-drivers install
+```
+
+Restart K3s on the Agent Node after installing the relavent GPU Drivers
+
+```bash
+sudo systemctl restart k3s-agent
+
+# You can then check the runtime is present with
+sudo grep nvidia /var/lib/rancher/k3s/agent/etc/containerd/config.toml
+sudo ctr image pull docker.io/nvidia/cuda:11.6.2-base-ubuntu20.04
+sudo ctr run --rm -t --runc-binary=/usr/bin/nvidia-container-runtime --env NVIDIA_VISIBLE_DEVICES=all docker.io/nvidia/cuda:11.6.2-base-ubuntu20.04 cuda-11.6.2-base-ubuntu20.04 nvidia-smi
 ```
 
 # Useful Middlewares

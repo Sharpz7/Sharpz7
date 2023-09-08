@@ -28,3 +28,6 @@ scripts:
 
     # Start new shell
     gcloud auth application-default login
+
+  cc-template: |
+    coder template push --var encoded_ssh_private_key=$(base64 -w0 compute-canada.ssh)
