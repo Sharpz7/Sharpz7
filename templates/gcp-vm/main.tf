@@ -42,7 +42,7 @@ data "coder_parameter" "zone" {
   description = "Which Zone should this VM be created in? (https://cloud.google.com/compute/docs/regions-zones)"
   mutable     = true
   default     = "us-central1-a"
-  icon        = "https://static.thenounproject.com/png/2958536-200.png"
+  icon        = "https://cdn.iconscout.com/icon/free/png-256/free-location-3079544-2561454.png?f=webp"
 
   option {
     name = "US Central A"
@@ -145,6 +145,7 @@ data "coder_parameter" "dotfiles_uri" {
 
   see https://dotfiles.github.io
   EOF
+  icon        = "https://openclipart.org/image/800px/305854"
   default      = "https://github.com/Sharpz7/dotfiles"
   type         = "string"
   mutable      = true
