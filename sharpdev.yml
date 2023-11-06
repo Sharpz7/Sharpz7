@@ -17,8 +17,11 @@ scripts:
     docker build --network=host -t sharp6292/envbuilder -f dockerfiles/envbuilder.Dockerfile .
     docker push sharp6292/envbuilder
 
+  # Templates":
+  # - alberta-389816
+  # - nidus-397516
   gcp_template: |
-    coder template create --var project_id=alberta-389816
+    coder template create --var project_id=nidus-397516
 
   gcp-install: |
     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-444.0.0-linux-x86_64.tar.gz

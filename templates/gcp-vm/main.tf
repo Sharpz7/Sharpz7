@@ -15,10 +15,6 @@ terraform {
 # Variables and Locals
 # ===================================
 locals {
-  zone         = "us-central1-a"
-  machine_type = "n1-standard-4"
-  gpu          = "nvidia-tesla-v100"
-
   jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
 
   linux_user = "coder"
@@ -33,13 +29,114 @@ variable "project_id" {
 provider "coder" {
 }
 provider "google" {
-  zone    = local.zone
+  zone    = data.coder_parameter.zone.value
   project = var.project_id
 }
 
 
 # Coder Params
 # ===================================
+data "coder_parameter" "zone" {
+  name        = "VM Zone"
+  type        = "string"
+  description = "Which Zone should this VM be created in? (https://cloud.google.com/compute/docs/regions-zones)"
+  mutable     = true
+  default     = "us-central1-a"
+  icon        = "https://static.thenounproject.com/png/2958536-200.png"
+
+  option {
+    name = "US Central A"
+    value = "us-central1-a"
+  }
+}
+data "coder_parameter" "machine_type" {
+  name        = "Machine Type"
+  type        = "string"
+  description = "Which Machine Type should this VM be created with? (https://cloud.google.com/compute/docs/gpus)"
+  mutable     = true
+  default     = "n1-standard-4"
+  icon        = "https://cdn-icons-png.flaticon.com/512/3962/3962020.png"
+
+  option {
+    name = "n1-standard-4"
+    value = "n1-standard-4"
+  }
+  option {
+    name = "n1-standard-8"
+    value = "n1-standard-8"
+  }
+  option {
+    name = "a2-ultragpu-1g (A100 80GB, 12vCPU, 170 GB RAM)"
+    value = "a2-ultragpu-1g"
+  }
+}
+data "coder_parameter" "gpu" {
+  name        = "GPU"
+  type        = "string"
+  description = "Which GPU should this VM be created with? (https://cloud.google.com/compute/docs/gpus)"
+  mutable     = true
+  default     = "nvidia-tesla-v100"
+  icon        = "https://user-images.githubusercontent.com/23376185/39456356-ca884ca8-4c9a-11e8-8c94-9129323979c7.png"
+
+  option {
+    name = "nvidia-tesla-v100"
+    value = "nvidia-tesla-v100"
+  }
+  option {
+    name = "nvidia-tesla-a100"
+    value = "nvidia-tesla-a100"
+  }
+
+}
+data "coder_parameter" "disk_image" {
+  name        = "Disk Image"
+  type        = "string"
+  description = "Which Disk Image should this VM's Storage be created with?"
+  mutable     = true
+  default     = "projects/ml-images/global/images/c0-deeplearning-common-gpu-v20230807-debian-11-py310"
+  icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
+
+  option {
+    name = "Debian 11 Python 3.10"
+    value = "projects/ml-images/global/images/c0-deeplearning-common-gpu-v20230807-debian-11-py310"
+  }
+}
+data "coder_parameter" "disk_size" {
+  name        = "PVC storage size"
+  type        = "number"
+  description = "Number of GB of storage"
+  icon        = "https://www.pngall.com/wp-content/uploads/5/Database-Storage-PNG-Clipart.png"
+  validation {
+    min       = 50
+    max       = 300
+    monotonic = "increasing"
+  }
+  mutable     = true
+  default     = 50
+}
+data "coder_parameter" "gpu_count" {
+  name        = "GPU Count"
+  type        = "number"
+  description = "Number of GPU's (Can be 0)"
+  icon        = "https://user-images.githubusercontent.com/23376185/39456356-ca884ca8-4c9a-11e8-8c94-9129323979c7.png"
+  validation {
+    min       = 0
+    max       = 8
+    monotonic = "increasing"
+  }
+  mutable     = true
+  default     = 1
+}
+data "coder_parameter" "spot_instance" {
+  name         = "Spot Instance"
+  type         = "bool"
+  description  = "Should this VM be a Spot Instance? (Cheaper)"
+  mutable      = true
+  default      = true
+}
+
+
+
 data "coder_parameter" "dotfiles_uri" {
   name         = "dotfiles_uri"
   display_name = "dotfiles URI"
@@ -85,11 +182,11 @@ resource "coder_metadata" "workspace_info" {
   }
   item {
     key = "GPU Type"
-    value   = local.gpu
+    value   = data.coder_parameter.gpu.value
   }
   item {
     key   = "VM Zone"
-    value = local.zone
+    value = data.coder_parameter.zone.value
   }
 }
 
@@ -98,10 +195,10 @@ resource "coder_metadata" "workspace_info" {
 # ===================================
 resource "google_compute_disk" "root" {
   name  = "coder-${data.coder_workspace.me.id}-root"
-  size  = 100
+  size  = data.coder_parameter.disk_size.value
   type  = "pd-ssd"
-  zone  = local.zone
-  image = "projects/ml-images/global/images/c0-deeplearning-common-gpu-v20230807-debian-11-py310"
+  zone  = data.coder_parameter.zone.value
+  image = data.coder_parameter.disk_image.value
   lifecycle {
     ignore_changes = [name, image]
   }
@@ -255,10 +352,10 @@ resource "coder_agent" "main" {
   }
 }
 resource "google_compute_instance" "dev" {
-  zone         = local.zone
+  zone         = data.coder_parameter.zone.value
   count        = data.coder_workspace.me.start_count
   name         = "coder-${lower(data.coder_workspace.me.owner)}-${lower(data.coder_workspace.me.name)}-root"
-  machine_type = local.machine_type
+  machine_type = data.coder_parameter.machine_type.value
   network_interface {
     network = "default"
     access_config {
@@ -267,13 +364,14 @@ resource "google_compute_instance" "dev" {
   }
   scheduling {
     automatic_restart   = false
-    on_host_maintenance = "TERMINATE"
-    preemptible         = true
-    provisioning_model  = "SPOT"
+    instance_termination_action = "STOP"
+
+    preemptible = data.coder_parameter.spot_instance.value
+    provisioning_model = data.coder_parameter.spot_instance.value ? "SPOT" : ""
   }
   guest_accelerator {
-    count = 1
-    type  = "projects/${var.project_id}/zones/${local.zone}/acceleratorTypes/${local.gpu}"
+    count = data.coder_parameter.gpu_count.value
+    type  = "projects/${var.project_id}/zones/${data.coder_parameter.zone.value}/acceleratorTypes/${data.coder_parameter.gpu.value}"
   }
   boot_disk {
     auto_delete = false
