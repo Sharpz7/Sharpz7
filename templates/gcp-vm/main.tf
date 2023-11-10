@@ -269,7 +269,7 @@ resource "coder_agent" "main" {
   startup_script         = <<-EOT
     set -e
 
-    sudo apt install -y git python3-distutils python3-apt neofetch
+    sudo apt install -y git neofetch
 
     # Jupyter
     export PATH=$PATH:/home/coder/.local/bin
