@@ -93,12 +93,12 @@ data "coder_parameter" "disk_image" {
   type        = "string"
   description = "Which Disk Image should this VM's Storage be created with?"
   mutable     = true
-  default     = "projects/ml-images/global/images/c0-deeplearning-common-gpu-v20230807-debian-11-py310"
+  default     = "projects/ml-images/global/images/c0-deeplearning-common-cpu-v20231105-debian-11-py310"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
     name = "Debian 11 Python 3.10"
-    value = "projects/ml-images/global/images/c0-deeplearning-common-gpu-v20230807-debian-11-py310"
+    value = "projects/ml-images/global/images/c0-deeplearning-common-cpu-v20231105-debian-11-py310"
   }
 }
 data "coder_parameter" "disk_size" {
