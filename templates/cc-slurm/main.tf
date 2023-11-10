@@ -1,17 +1,14 @@
 terraform {
   required_providers {
+    ssh = {
+      source  = "loafoe/ssh"
+      version = "2.6.0"
+    }
     coder = {
       source  = "coder/coder"
       version = "0.11.0"
     }
-    null = {
-      source = "hashicorp/null"
-    }
   }
-}
-
-locals {
-  linux_user = "coder"
 }
 
 variable "encoded_ssh_private_key" {
@@ -85,46 +82,26 @@ resource "coder_agent" "main" {
   }
 }
 
-resource "null_resource" "coder_slurm_job" {
-  provisioner "local-exec" {
-    command = <<EOT
-      # SSH into the Slurm cluster's head node
-      # Save the private key to a temporary file
-      echo "${var.encoded_ssh_private_key}" | base64 -d > /tmp/temp_ssh_key
-      chmod 600 /tmp/temp_ssh_key
+resource "ssh_resource" "init" {
+  host         = "narval.computecanada.ca"
+  user         = "amcarth1"
+  private_key  = var.encoded_ssh_private_key
 
-      # SSH into the Slurm cluster's head node using the private key
-      ssh -o StrictHostKeyChecking=no -i /tmp/temp_ssh_key amcarth1@narval.alliancecan.ca <<'ENDSSH'
+  when         = "create" # Default
 
-        echo DIR=~/projects/def-jjaremko/amcarth1/test/
-        cd $DIR
-
-        export BINARY_NAME=coder
-        export BINARY_URL=https://coder.mcaq.me/bin/coder-linux-amd64
-        curl -fsSL --compressed $BINARY_URL -o $BINARY_NAME
-
-        chmod u+x coder.sh
-        chmod u+x $BINARY_NAME
-
-        # Create a temporary Slurm job script
-        cat > $DIR/coder_slurm_job.sh <<'ENDSCRIPT'
-          #!/usr/bin/env sh
-          set -eux
-          export CODER_AGENT_AUTH=\"token\"
-          export CODER_AGENT_URL=\"https://coder.mcaq.me/\"
-          exec ~/projects/def-jjaremko/amcarth1/test/coder agent
-        ENDSCRIPT
-
-        # Make the script executable
-        chmod u+x $DIR/coder_slurm_job.sh
-
-        salloc --time=1:0:0 --mem=3G --ntasks=1 --cpus-per-task=2 --account=def-jjaremko srun $DIR/coder_slurm_job.sh
-      ENDSSH
-
-      # Clean up the temporary private key
-      rm -f /tmp/temp_ssh_key
-    EOT
+  file {
+    content     = "salloc --time=0-3:0:0 --ntasks=1 --cpus-per-task=1 --mem=4G --account=def-jjaremko"
+    destination = "/home/amcarth1/alloc.sh"
+    permissions = "0700"
   }
+
+  commands = [
+    "/home/amcarth1/alloc.sh",
+  ]
 }
 
-data "coder_workspace" "me" {}
+# Nodes nc31104 are ready for job
+# I only want to find the node name in between the word "Nodes" and "are"
+output "result" {
+  value = regexall("Nodes (.*?) are", ssh_resource.init.output)
+}
