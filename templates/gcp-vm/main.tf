@@ -269,6 +269,7 @@ resource "coder_agent" "main" {
   startup_script         = <<-EOT
     set -e
 
+    sudo apt update -y
     sudo apt install -y git neofetch
 
     # Jupyter
