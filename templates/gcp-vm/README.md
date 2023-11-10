@@ -18,3 +18,11 @@ tar -xf google-cloud-cli-444.0.0-linux-x86_64.tar.gz
 # Login and Back.
 gcloud auth application-default login
 ```
+
+## Install GPU Drivers
+
+```bash
+curl https://raw.githubusercontent.com/GoogleCloudPlatform/compute-gpu-installation/main/linux/install_gpu_driver.py --output install_gpu_driver.py
+
+sudo spython3 install_gpu_driver.py
+```
