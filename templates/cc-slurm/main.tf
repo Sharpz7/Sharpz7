@@ -90,7 +90,21 @@ resource "ssh_resource" "init" {
   when         = "create" # Default
 
   file {
-    content     = "salloc --time=0-3:0:0 --ntasks=1 --cpus-per-task=1 --mem=4G --account=def-jjaremko"
+    content = <<EOT
+      #!/usr/bin/env sh
+      set -eux
+      echo DIR=~/projects/def-jjaremko/amcarth1/test/
+      cd $DIR
+
+      export BINARY_NAME=coder
+      export BINARY_URL=https://coder.mcaq.me/bin/coder-linux-amd64
+      curl -fsSL --compressed $BINARY_URL -o $BINARY_NAME
+
+      chmod u+x coder.sh
+      chmod u+x $BINARY_NAME
+
+      salloc --time=0-3:0:0 --ntasks=1 --cpus-per-task=1 --mem=4G --account=def-jjaremko
+    EOT
     destination = "/home/amcarth1/alloc.sh"
     permissions = "0700"
   }
@@ -104,4 +118,39 @@ resource "ssh_resource" "init" {
 # I only want to find the node name in between the word "Nodes" and "are"
 output "result" {
   value = regexall("Nodes (.*?) are", ssh_resource.init.output)
+}
+
+resource "ssh_resource" "node_ssh" {
+  # Ensure this resource is created after ssh_resource.init
+  depends_on = [ssh_resource.init]
+
+  # Host details - using the output of the first SSH resource
+  host        = output.result
+  user        = "amcarth1"
+  private_key = var.encoded_ssh_private_key
+
+  # ProxyJump configuration
+  proxy {
+    host        = "narval.computecanada.ca"
+    user        = "amcarth1"
+    private_key = var.encoded_ssh_private_key
+  }
+
+  file {
+    content = <<EOT
+      #!/usr/bin/env sh
+      set -eux
+
+      export CODER_AGENT_AUTH=\"token\"
+      export CODER_AGENT_URL=\"https://coder.mcaq.me/\"
+      exec ~/projects/def-jjaremko/amcarth1/test/coder agent
+    EOT
+    destination = "/home/amcarth1/coder-agent.sh"
+    permissions = "0700"
+  }
+
+  # The actions to be performed via SSH on the node
+  commands = [
+    "/home/amcarth1/coder-agent.sh"
+  ]
 }
