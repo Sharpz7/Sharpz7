@@ -114,27 +114,19 @@ resource "ssh_resource" "init" {
   ]
 }
 
-# Nodes nc31104 are ready for job
-# I only want to find the node name in between the word "Nodes" and "are"
-output "result" {
-  value = regexall("Nodes (.*?) are", ssh_resource.init.output)
-}
-
 resource "ssh_resource" "node_ssh" {
   # Ensure this resource is created after ssh_resource.init
   depends_on = [ssh_resource.init]
 
   # Host details - using the output of the first SSH resource
-  host        = output.result
+  host        = try(regex("Nodes (.*?) are", ssh_resource.init.result)[0], null)
   user        = "amcarth1"
   private_key = var.encoded_ssh_private_key
 
   # ProxyJump configuration
-  proxy {
-    host        = "narval.computecanada.ca"
-    user        = "amcarth1"
-    private_key = var.encoded_ssh_private_key
-  }
+  bastion_host        = "narval.computecanada.ca"
+  bastion_user       = "amcarth1"
+  bastion_private_key = var.encoded_ssh_private_key
 
   file {
     content = <<EOT
@@ -154,3 +146,5 @@ resource "ssh_resource" "node_ssh" {
     "/home/amcarth1/coder-agent.sh"
   ]
 }
+
+data "coder_workspace" "me" {}
