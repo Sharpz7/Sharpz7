@@ -33,4 +33,8 @@ scripts:
     gcloud auth application-default login
 
   cc-template: |
-    coder template push --var encoded_ssh_private_key=$(base64 -w0 compute-canada.ssh)
+    # Read the SSH key into a variable
+    ENCODED_SSH_PRIVATE_KEY=$(cat compute-canada.ssh)
+
+    # Use the variable in the coder template push command
+    coder template push --var encoded_ssh_private_key="$ENCODED_SSH_PRIVATE_KEY"
