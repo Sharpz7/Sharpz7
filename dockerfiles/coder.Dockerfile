@@ -3,13 +3,6 @@ FROM codercom/enterprise-base:ubuntu
 # general env
 ENV PATH /home/coder/.local/bin:$PATH
 
-# golang env
-ENV GOROOT /usr/local/go
-ENV GOPATH /home/coder/go
-ENV GOBIN $GOPATH/bin
-ENV PATH $PATH:$GOBIN
-ENV PATH $PATH:$GOROOT/bin
-
 # flutter
 ENV PATH $PATH:/home/coder/flutter/bin
 

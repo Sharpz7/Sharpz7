@@ -19,6 +19,10 @@ variable "encoded_ssh_private_key" {
 
 provider "coder" {}
 
+provider "ssh" {
+  debug_log = "/home/coder/ssh.log"
+}
+
 resource "coder_agent" "main" {
   arch                   = "amd64"
   os                     = "linux"
