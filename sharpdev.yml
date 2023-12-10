@@ -11,11 +11,11 @@ scripts:
     docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
     docker push sharp6292/coder-base
 
-    docker build --network=host -t sharp6292/coder-gpu -f dockerfiles/gpu.Dockerfile .
-    docker push sharp6292/coder-gpu
+    # docker build --network=host -t sharp6292/coder-gpu -f dockerfiles/gpu.Dockerfile .
+    # docker push sharp6292/coder-gpu
 
-    docker build --network=host -t sharp6292/envbuilder -f dockerfiles/envbuilder.Dockerfile .
-    docker push sharp6292/envbuilder
+    # docker build --network=host -t sharp6292/envbuilder -f dockerfiles/envbuilder.Dockerfile .
+    # docker push sharp6292/envbuilder
 
   # Templates":
   # - alberta-389816
