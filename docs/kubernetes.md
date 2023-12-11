@@ -49,6 +49,8 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/clo
 ```
 
 ```bash
+kubectl create namespace coder
+
 wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/certs.yaml \
 | envsubst \
 | kubectl apply -f -
