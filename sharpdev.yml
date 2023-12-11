@@ -3,6 +3,9 @@ version: 1
 envfile: .env
 
 scripts:
+  setup: |
+    curl -fsSL https://coder.com/install.sh | sh
+
   login: |
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
