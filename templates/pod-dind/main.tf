@@ -166,12 +166,31 @@ resource "coder_app" "filebrowser" {
   subdomain    = true
   share        = "owner"
 }
-resource "coder_app" "testport" {
+resource "coder_app" "p6262" {
   agent_id     = coder_agent.main.id
-  display_name = "Exposed Test Port (6262)"
-  slug         = "testport"
+  display_name = "6262"
+  slug         = "p6262"
   icon         = "https://cdn-icons-png.flaticon.com/512/2995/2995440.png"
   url          = "http://localhost:6262"
+  subdomain    = true
+  share        = "public"
+}
+resource "coder_app" "p6263" {
+  agent_id     = coder_agent.main.id
+  display_name = "6263"
+  slug         = "p6263"
+  icon         = "https://cdn-icons-png.flaticon.com/512/2995/2995440.png"
+  url          = "http://localhost:6263"
+  subdomain    = true
+  share        = "public"
+}
+
+resource "coder_app" "p6264" {
+  agent_id     = coder_agent.main.id
+  display_name = "6264"
+  slug         = "p6264"
+  icon         = "https://cdn-icons-png.flaticon.com/512/2995/2995440.png"
+  url          = "http://localhost:6264"
   subdomain    = true
   share        = "public"
 }
