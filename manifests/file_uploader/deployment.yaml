@@ -1,3 +1,32 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sharpfiles-pv
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/volumes/files"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sharpfiles-pvc
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,6 +42,15 @@ spec:
         app: sharpfiles
     spec:
       hostname: sharpfiles
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - vmi1031871.contaboserver.net
       containers:
       - name: sharpfiles
         image: sharp6292/sharpfiles
@@ -20,20 +58,17 @@ spec:
         - name: SECRET
           valueFrom:
             secretKeyRef:
-              name: sharexpass-secret
+              name: sharex-secret
               key: SHAREXPASS
         - name: DOMAIN
-          valueFrom:
-            secretKeyRef:
-              name: domain-secret
-              key: DOMAIN
+          value: files.mcaq.me
         volumeMounts:
         - name: sharpfiles-data
           mountPath: /sharex/files/
       volumes:
       - name: sharpfiles-data
         persistentVolumeClaim:
-          claimName: sharpfiles-data-pvc
+          claimName: sharpfiles-pvc
 
 ---
 
@@ -46,26 +81,31 @@ spec:
     app: sharpfiles
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 80
+    port: 8080
+    targetPort: 8080
 
 ---
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: sharpfiles-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
 spec:
+  tls:
+  - hosts:
+      - files.mcaq.me
+    secretName: files-mcaq-me-tls
   rules:
   - host: files.mcaq.me
     http:
       paths:
-      - path: /
-        backend:
-          serviceName: sharpfiles-service
-          servicePort: 80
-
-  tls:
-  - hosts:
-    - files.mcaq.me
-    secretName: ${DOMAIN}-tls
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: sharpfiles-service
+              port:
+                number: 8080
