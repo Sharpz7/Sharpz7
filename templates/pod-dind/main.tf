@@ -18,14 +18,10 @@ locals {
   use_kubeconfig = false
 
   node_resources = {
-    "vmi1031871.contaboserver.net" = {
-      cpu    = 10
-      memory = 60
+    "vmi1555974.contaboserver.net" = {
+      cpu    = 8
+      memory = 30
     },
-    "vmi261078.contaboserver.net" = {
-      cpu    = 4
-      memory = 8
-    }
   }
 
   jupyter-type-arg = "${data.coder_parameter.jupyter.value == "notebook" ? "Notebook" : "Server"}"
@@ -72,16 +68,12 @@ data "coder_parameter" "node" {
   type        = "string"
   description = "Which Node should the Pod be placed on?"
   mutable     = true
-  default     = "vmi1031871.contaboserver.net"
+  default     = "vmi1555974.contaboserver.net"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
-    name = "10vCPU, 60GB RAM"
-    value = "vmi1031871.contaboserver.net"
-  }
-  option {
-    name = "4vCPU, 8GB RAM"
-    value = "vmi261078.contaboserver.net"
+    name = "8vCPU, 30GB RAM"
+    value = "vmi1555974.contaboserver.net"
   }
 }
 data "coder_parameter" "disk_size" {
