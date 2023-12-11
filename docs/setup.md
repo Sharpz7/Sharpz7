@@ -130,6 +130,14 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml >> .zshrc
 sudo chown adam:root /etc/rancher/k3s/k3s.yaml
 ```
 
+## Add Middleware for auto https
+
+```bash
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/manifests/middleware/https-redirect.yaml \
+| envsubst \
+| kubectl apply -f -
+```
+
 ## Installing K3s Agents
 
 Note that this assumes 1 ssh key across the servers.
