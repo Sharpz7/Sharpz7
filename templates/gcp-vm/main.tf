@@ -183,7 +183,11 @@ resource "coder_metadata" "workspace_info" {
   }
   item {
     key = "GPU Type"
-    value   = data.coder_parameter.gpu.value
+    value   = data.coder_parameter.gpu_count.value > 0 ? data.coder_parameter.gpu.value : "None"
+  }
+  item {
+    key = "GPU Count"
+    value   = data.coder_parameter.gpu_count.value
   }
   item {
     key   = "VM Zone"
@@ -289,12 +293,17 @@ resource "coder_agent" "main" {
   startup_script         = <<-EOT
     set -e
 
+    # Random Installs
+    export PATH=$PATH:/home/coder/.local/bin:/opt/conda/bin
+
     sudo apt update -y
     sudo apt install -y git neofetch
 
+    python3.10 -m pip install --upgrade pip
+    python3.10 -m pip install poetry
+
     # Jupyter
-    export PATH=$PATH:/home/coder/.local/bin
-    pip3 install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
+    python3.10 -m pip install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
     jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" --port=8888 >/tmp/jupyter.log 2>&1 &
 
     # FileBrowser
