@@ -93,7 +93,7 @@ data "coder_parameter" "disk_image" {
   type        = "string"
   description = "Which Disk Image should this VM's Storage be created with?"
   mutable     = true
-  default     = "projects/ml-images/global/images/c2-deeplearning-pytorch-2-0-gpu-v20231209-debian-11-py310"
+  default     = "projects/ml-images/global/images/c0-deeplearning-common-cpu-v20231105-debian-11-py310"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
@@ -130,7 +130,7 @@ data "coder_parameter" "gpu_count" {
     max       = 8
   }
   mutable     = true
-  default     = 1
+  default     = 0
 }
 data "coder_parameter" "spot_instance" {
   name         = "Spot Instance"
