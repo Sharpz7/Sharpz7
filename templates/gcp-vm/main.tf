@@ -93,7 +93,7 @@ data "coder_parameter" "disk_image" {
   type        = "string"
   description = "Which Disk Image should this VM's Storage be created with?"
   mutable     = true
-  default     = "projects/ml-images/global/images/c0-deeplearning-common-cpu-v20231105-debian-11-py310"
+  default     = "projects/ml-images/global/images/c2-deeplearning-pytorch-2-0-gpu-v20231209-debian-11-py310"
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
@@ -150,7 +150,7 @@ data "coder_parameter" "dotfiles_uri" {
 
   see https://dotfiles.github.io
   EOF
-  icon        = "https://openclipart.org/image/800px/305854"
+  icon        = "/icon/folder.svg"
   default      = "https://github.com/Sharpz7/dotfiles"
   type         = "string"
   mutable      = true
