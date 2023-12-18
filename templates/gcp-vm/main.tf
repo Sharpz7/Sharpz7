@@ -75,7 +75,7 @@ data "coder_parameter" "gpu" {
   type        = "string"
   description = "Which GPU should this VM be created with? (https://cloud.google.com/compute/docs/gpus)"
   mutable     = true
-  default     = "nvidia-tesla-v100"
+  default     = ""
   icon        = "https://user-images.githubusercontent.com/23376185/39456356-ca884ca8-4c9a-11e8-8c94-9129323979c7.png"
 
   option {
@@ -83,8 +83,8 @@ data "coder_parameter" "gpu" {
     value = "nvidia-tesla-v100"
   }
   option {
-    name = "nvidia-tesla-a100"
-    value = "nvidia-tesla-a100"
+    name = "None"
+    value = ""
   }
 
 }
@@ -97,15 +97,21 @@ data "coder_parameter" "disk_image" {
   icon        = "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png"
 
   option {
-    name = "Debian 11 Python 3.10"
+    name = "Debian 11 Python 3.10 CPU"
     value = "projects/ml-images/global/images/c0-deeplearning-common-cpu-v20231105-debian-11-py310"
   }
+
+  option {
+    name = "Debian 11 Python 3.10 GPU Pytorch 2.0"
+    value = "projects/ml-images/global/images/c2-deeplearning-pytorch-2-0-gpu-v20231209-debian-11-py310"
+  }
+
 }
 data "coder_parameter" "disk_size" {
   name        = "PVC storage size"
   type        = "number"
   description = "Number of GB of storage"
-  icon        = "https://www.pngall.com/wp-content/uploads/5/Database-Storage-PNG-Clipart.png"
+  icon        = "/icon/folder.svg"
   validation {
     min       = 50
     max       = 300
@@ -122,7 +128,6 @@ data "coder_parameter" "gpu_count" {
   validation {
     min       = 0
     max       = 8
-    monotonic = "increasing"
   }
   mutable     = true
   default     = 1
@@ -395,10 +400,11 @@ resource "google_compute_instance" "dev" {
   }
   scheduling {
     automatic_restart   = false
-    instance_termination_action = "STOP"
+
+    on_host_maintenance = "TERMINATE"
 
     preemptible = data.coder_parameter.spot_instance.value
-    provisioning_model = data.coder_parameter.spot_instance.value ? "SPOT" : ""
+    provisioning_model = data.coder_parameter.spot_instance.value ? "SPOT" : null
   }
   guest_accelerator {
     count = data.coder_parameter.gpu_count.value
