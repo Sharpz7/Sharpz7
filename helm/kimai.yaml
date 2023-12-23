@@ -16,7 +16,7 @@ ingress:
   ##
   certManager: true
 
-  hostname: timesheet.${DOMAIN}
+  hostname: invoice.${DOMAIN}
   ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
@@ -33,62 +33,3 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-production
-
-persistence:
-  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
-  ##
-  enabled: true
-  ## @param persistence.storageClass Persistent Volume storage class
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
-  ##
-  storageClass:
-  ## @param persistence.accessModes [array] Persistent Volume access modes
-  ##
-  accessModes:
-    - ReadWriteOnce
-  ## @param persistence.size Persistent Volume size
-  ##
-  size: 4Gi
-  ## @param persistence.dataSource Custom PVC data source
-  ##
-  dataSource: {}
-  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
-  ##
-  existingClaim: ""
-  ## @param persistence.selector Selector to match an existing Persistent Volume for Kimai data PVC
-  ## If set, the PVC can't have a PV dynamically provisioned for it
-  ## E.g.
-  ## selector:
-  ##   matchLabels:
-  ##     app: my-app
-  ##
-  selector: {}
-  ## @param persistence.annotations Persistent Volume Claim annotations
-  ##
-  annotations: {}
-
-mariadb:
-  ## @param mariadb.enabled Deploy a MariaDB server to satisfy the applications database requirements
-  ## To use an external database set this to false and configure the `externalDatabase.*` parameters
-  ##
-  enabled: true
-  ## @param mariadb.architecture MariaDB architecture. Allowed values: `standalone` or `replication`
-  ##
-  architecture: standalone
-  ##
-  primary:
-    ## MariaDB Primary Persistence parameters
-    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
-    ## @param mariadb.primary.persistence.enabled Enable persistence on MariaDB using PVC(s)
-    ## @param mariadb.primary.persistence.storageClass Persistent Volume storage class
-    ## @param mariadb.primary.persistence.accessModes [array] Persistent Volume access modes
-    ## @param mariadb.primary.persistence.size Persistent Volume size
-    ##
-    persistence:
-      enabled: true
-      storageClass:
-      accessModes:
-        - ReadWriteOnce
-      size: 4Gi

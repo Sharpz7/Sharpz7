@@ -126,7 +126,7 @@ curl -sfL https://get.k3s.io | sh -s server \
 ```
 
 ```bash
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml >> .zshrc
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml >> .bashrc
 sudo chown adam:root /etc/rancher/k3s/k3s.yaml
 ```
 

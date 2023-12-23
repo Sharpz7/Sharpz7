@@ -67,7 +67,7 @@ sudo apt-get install apache2-utils
 
 export DOMAIN=mcaq.me
 export DOMAIN_NAME=mcaq-me
-export AUTH_SECRET=$(htpasswd -nbB <user> <pass>)
+export AUTH_SECRET=$(htpasswd -nbB $DOCKER_USERNAME $DOCKER_PASSWORD)
 ```
 
 ```bash
