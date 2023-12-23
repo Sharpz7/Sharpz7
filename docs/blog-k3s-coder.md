@@ -59,9 +59,8 @@ kubectl exec --stdin --tty POD_NAME -- /bin/bash
 /opt/kimai/bin/console kimai:user:create admin email@domain.com ROLE_SUPER_ADMIN password
 ```
 
-```sql
-
 # Docker Registry Install
+
 
 ```bash
 sudo apt-get install apache2-utils

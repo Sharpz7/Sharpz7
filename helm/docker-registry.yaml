@@ -1,11 +1,15 @@
 ingress:
   enabled: true
   className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
   path: /
   hosts:
     - docker.mcaq.me
   tls:
-    - secretName: ${DOMAIN}-tls
+    - secretName: docker-${DOMAIN}-tls
       hosts:
         - docker.${DOMAIN}
 

@@ -54,6 +54,7 @@ spec:
       containers:
       - name: sharpfiles
         image: sharp6292/sharpfiles
+        # kubectl create secret generic sharex-secret --from-literal=SHAREXPASS=pass
         env:
         - name: SECRET
           valueFrom:
