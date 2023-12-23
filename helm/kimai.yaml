@@ -8,6 +8,9 @@ kimaiAdminEmail: ${KIMAI_USER}
 ##
 kimaiAdminPassword: ${KIMAI_PASS}
 
+service:
+  type: ClusterIP
+
 ingress:
   ## @param ingress.enabled Enable ingress record generation for Kimai
   ##
