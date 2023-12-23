@@ -50,7 +50,7 @@ spec:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                - vmi1031871.contaboserver.net
+                - vmi1555974.contaboserver.net
       containers:
       - name: sharpfiles
         image: sharp6292/sharpfiles
