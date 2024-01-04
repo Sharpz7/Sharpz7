@@ -95,7 +95,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.tls.certresolver: "nidus-online-tls"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "files-mcaq-me-tls"
 spec:
   tls:
   - hosts:
