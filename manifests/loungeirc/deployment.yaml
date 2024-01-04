@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thelounge-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thelounge
+  template:
+    metadata:
+      labels:
+        app: thelounge
+    spec:
+      containers:
+      - name: thelounge
+        image: ghcr.io/thelounge/thelounge:latest
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - name: thelounge-data
+          mountPath: /var/opt/thelounge
+      volumes:
+      - name: thelounge-data
+        persistentVolumeClaim:
+          claimName: thelounge-pvc
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: thelounge-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "local-path"
+  resources:
+    requests:
+      storage: 1Gi  # Or any other size
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: thelounge-service
+spec:
+  selector:
+    app: thelounge
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thelounge-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "irc-mcaq-tls"
+spec:
+  tls:
+    - hosts:
+        - irc.mcaq.me
+      secretName: irc-mcaq-tls
+  rules:
+    - host: irc.mcaq.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thelounge-service
+                port:
+                  number: 9000
