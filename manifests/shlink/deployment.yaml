@@ -1,0 +1,167 @@
+# shlink api-key:generate
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: links-namespace
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: links-namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi # Specify the size of the volume
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: links-namespace
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres-container
+        image: postgres:latest
+        env:
+        - name: POSTGRES_DB
+          value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data # PostgreSQL data directory
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: links-namespace
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: links-deployment
+  namespace: links-namespace
+  labels:
+    app: links
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: links
+  template:
+    metadata:
+      labels:
+        app: links
+    spec:
+      containers:
+      - name: links-container
+        image: shlinkio/shlink:stable
+        env:
+        # kubectl create secret generic links-secret --from-literal=GEOLITE_LICENSE_KEY=key -n links-namespace
+        - name: GEOLITE_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: links-secret
+              key: GEOLITE_LICENSE_KEY
+
+        - name: DEFAULT_DOMAIN
+          value: links.mcaq.me
+        - name: IS_HTTPS_ENABLED
+          value: "true"
+        - name: DB_DRIVER
+          value: postgres
+        - name: DB_HOST
+          value: postgres-service.links-namespace.svc.cluster.local
+        - name: DB_NAME
+          value: postgres
+        - name: DB_USER
+          value: postgres
+        - name: DB_PASSWORD
+          value: postgres
+        - name: SHELL_VERBOSITY
+          value: "3"
+        - name: IS_HTTPS_ENABLED
+          value: "true"
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: links-service
+  namespace: links-namespace
+  labels:
+    app: links
+spec:
+  selector:
+    app: links
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: links-ingress
+  namespace: links-namespace
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "links-online-tls"
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production-fallback
+spec:
+  tls:
+  - hosts:
+    - links.mcaq.me
+    secretName: links-online-tls
+  rules:
+  - host: links.mcaq.me
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: links-service
+            port:
+              number: 80
