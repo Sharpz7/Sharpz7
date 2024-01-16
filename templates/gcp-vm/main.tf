@@ -233,21 +233,21 @@ resource "coder_app" "code-server" {
   subdomain    = true
   share        = "owner"
 }
-resource "coder_app" "jupyter" {
-  agent_id     = coder_agent.main.id
-  slug          = "j"
-  display_name  = "Jupyter ${upper(data.coder_parameter.jupyter.value)}"
-  icon          = "/icon/jupyter.svg"
-  url           = "http://localhost:8888/"
-  share         = "owner"
-  subdomain     = true
+# resource "coder_app" "jupyter" {
+#   agent_id     = coder_agent.main.id
+#   slug          = "j"
+#   display_name  = "Jupyter ${upper(data.coder_parameter.jupyter.value)}"
+#   icon          = "/icon/jupyter.svg"
+#   url           = "http://localhost:8888/"
+#   share         = "owner"
+#   subdomain     = true
 
-  healthcheck {
-    url       = "http://localhost:8888/healthz/"
-    interval  = 10
-    threshold = 20
-  }
-}
+#   healthcheck {
+#     url       = "http://localhost:8888/healthz/"
+#     interval  = 10
+#     threshold = 20
+#   }
+# }
 resource "coder_app" "filebrowser" {
   agent_id     = coder_agent.main.id
   display_name = "File Browser"
@@ -308,8 +308,8 @@ resource "coder_agent" "main" {
     python3.10 -m pip install poetry
 
     # Jupyter
-    python3.10 -m pip install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
-    jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" --port=8888 >/tmp/jupyter.log 2>&1 &
+    # python3.10 -m pip install jupyterlab==3.5.2 notebook==6.5.2 jupyter-core==5.1.3
+    # jupyter ${data.coder_parameter.jupyter.value} --${local.jupyter-type-arg}App.token="" --ip="*" --port=8888 >/tmp/jupyter.log 2>&1 &
 
     # FileBrowser
     mkdir -p ~/data
