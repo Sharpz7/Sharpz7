@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: focalboard-deployment
+  labels:
+    app: focalboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: focalboard
+  template:
+    metadata:
+      labels:
+        app: focalboard
+    spec:
+      containers:
+      - name: focalboard
+        image: mattermost/focalboard
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: focalboard-data
+          mountPath: /opt/focalboard/data
+      volumes:
+      - name: focalboard-data
+        persistentVolumeClaim:
+          claimName: focalboard-pvc
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: focalboard-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: focalboard-service
+spec:
+  selector:
+    app: focalboard
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: focalboard-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "nidus-mcaq-tls"
+spec:
+  tls:
+    - hosts:
+        - nidus.mcaq.me
+      secretName: nidus-mcaq-tls
+  rules:
+    - host: nidus.mcaq.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: focalboard-service
+                port:
+                  number: 80
