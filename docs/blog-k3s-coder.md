@@ -82,3 +82,18 @@ wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-r
 | envsubst \
 | helm upgrade docker-registry twuni/docker-registry --namespace default --values -
 ```
+
+# FocalBoard Install
+
+```bash
+helm repo add mattermost https://helm.mattermost.com
+
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/focalboard.yaml \
+| envsubst \
+| helm install focalboard mattermost/focalboard --namespace default --values -
+
+# for upgrade
+wget -O- -q https://raw.githubusercontent.com/Sharpz7/Sharpz7/main/helm/docker-registry.yaml \
+| envsubst \
+| helm upgrade focalboard mattermost/focalboard --namespace default --values -
+```
