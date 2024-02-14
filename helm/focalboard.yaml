@@ -46,7 +46,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/router.tls.certresolver: "irc-mcaq-tls"
-  hosts:
+  rules:
     - host: nidus.mcaq.me
       paths:
       - path: /
