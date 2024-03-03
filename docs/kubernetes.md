@@ -99,6 +99,10 @@ helm install coder-db bitnami/postgresql \
     --set auth.database=coder \
     --set persistence.size=10Gi
 
+
+# Note that https://github.com/bitnami/charts/tree/main/bitnami/postgresql-ha#adjust-permissions-of-persistent-volume-mountpoint
+# might be needed to fix the permissions of the volume
+
 helm repo add coder-v2 https://helm.coder.com/v2
 ```
 

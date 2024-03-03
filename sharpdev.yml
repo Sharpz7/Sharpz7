@@ -7,12 +7,13 @@ scripts:
     curl -fsSL https://coder.com/install.sh | sh
 
   login: |
-    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    sudo docker login docker.mcaq.me -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
   image: |
     sharpdev login
-    docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
-    docker push sharp6292/coder-base
+    sudo docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
+    sudo docker push sharp6292/coder-base
 
     # docker build --network=host -t sharp6292/coder-gpu -f dockerfiles/gpu.Dockerfile .
     # docker push sharp6292/coder-gpu
