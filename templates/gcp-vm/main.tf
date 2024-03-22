@@ -301,7 +301,6 @@ resource "coder_agent" "main" {
     # Random Installs
     export PATH=$PATH:/home/coder/.local/bin:/opt/conda/bin
 
-    sudo apt update -y
     sudo apt install -y git neofetch
 
     python3.10 -m pip install --upgrade pip
