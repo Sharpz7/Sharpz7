@@ -1,0 +1,114 @@
+# Default values for mattermost-team-edition.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: mattermost/mattermost-team-edition
+  tag: release-9.6
+  imagePullPolicy: IfNotPresent
+
+initContainerImage:
+  repository: appropriate/curl
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+## Deployment Strategy
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate: null
+
+## How many old ReplicaSets for Mattermost Deployment you want to retain
+revisionHistoryLimit: 1
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+## ref: https://docs.gitlab.com/ee/install/requirements.html#storage
+##
+persistence:
+  ## This volume persists generated data from users, like images, attachments...
+  ##
+  data:
+    enabled: true
+    size: 10Gi
+    ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+    ## Default: volume.alpha.kubernetes.io/storage-class: default
+    ##
+    # storageClass:
+    accessMode: ReadWriteOnce
+  # existingClaim: ""
+  plugins:
+    enabled: true
+    size: 1Gi
+    ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+    ## Default: volume.alpha.kubernetes.io/storage-class: default
+    ##
+    # storageClass:
+    accessMode: ReadWriteOnce
+  # existingClaim: ""
+
+service:
+  type: ClusterIP
+  externalPort: 8065
+  internalPort: 8065
+  annotations: {}
+  # loadBalancerIP:
+  loadBalancerSourceRanges: []
+
+ingress:
+  enabled: true
+  className: ""
+  path: /
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "nidus-admin-mcaq-tls"
+  hosts:
+    - nidus-admin.mcaq.me
+  tls:
+    - secretName: nidus-admin.mcaq.me-tls
+      hosts:
+        - nidus-admin.mcaq.me
+
+## If use this please disable the mysql chart by setting mysql.enable to false
+externalDB:
+  enabled: false
+
+  ## postgres or mysql
+  externalDriverType: ""
+
+  ## postgres:  "<USERNAME>:<PASSWORD>@<HOST>:5432/<DATABASE_NAME>?sslmode=disable&connect_timeout=10"
+  ## mysql:     "<USERNAME>:<PASSWORD>@tcp(<HOST>:3306)/<DATABASE_NAME>?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+  externalConnectionString: ""
+
+mysql:
+  enabled: true
+  mysqlRootPassword: ""
+  mysqlUser: "sql"
+  mysqlPassword: "password"
+  mysqlDatabase: mattermost
+
+  repository: mysql
+  imageTag: '8.0.18'
+  testFramework:
+    enabled: false
+
+  persistence:
+    enabled: true
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  # existingClaim: ""
+
+
+configJSON:
+  ServiceSettings:
+    SiteURL: "nidus-admin.mcaq.me"
+  TeamSettings:
+    SiteName: "Mattermost on NIDUS"

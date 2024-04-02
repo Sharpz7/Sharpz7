@@ -1,38 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: focalboard-deployment
+  name: mattermost-deployment
   labels:
-    app: focalboard
+    app: mattermost
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: focalboard
+      app: mattermost
   template:
     metadata:
       labels:
-        app: focalboard
+        app: mattermost
     spec:
       containers:
-      - name: focalboard
-        image: mattermost/focalboard
+      - name: mattermost
+        image: mattermost/mattermost-team-edition
         ports:
         - containerPort: 8000
         volumeMounts:
-        - name: focalboard-data
-          mountPath: /opt/focalboard/data
+        - name: mattermost-data
+          mountPath: /mattermost/data
       volumes:
-      - name: focalboard-data
+      - name: mattermost-data
         persistentVolumeClaim:
-          claimName: focalboard-pvc
+          claimName: mattermost-pvc
 
 ---
 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: focalboard-pvc
+  name: mattermost-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -45,10 +45,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: focalboard-service
+  name: mattermost-service
 spec:
   selector:
-    app: focalboard
+    app: mattermost
   ports:
     - protocol: TCP
       port: 80
@@ -59,7 +59,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: focalboard-ingress
+  name: mattermost-ingress
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
@@ -78,6 +78,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: focalboard-service
+                name: mattermost-service
                 port:
                   number: 80
