@@ -28,7 +28,7 @@ spec:
       containers:
       - name: fml
         image: gresearch/fasttrackml
-        args: ["--auth-username", "$(FML_USERNAME)", "--auth-password", "$(FML_PASSWORD)"]
+        command: ["fml", "server", "--auth-username", "$(FML_USERNAME)", "--auth-password", "$(FML_PASSWORD)"]
         env:
         - name: FML_USERNAME
           valueFrom:
