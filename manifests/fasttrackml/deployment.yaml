@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: fml-pv
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/volumes/fml"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fml-pvc
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fml-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fml
+  template:
+    metadata:
+      labels:
+        app: fml
+    spec:
+      containers:
+      - name: fml
+        image: gresearch/fasttrackml
+        args: ["--auth-username", "$(FML_USERNAME)", "--auth-password", "$(FML_PASSWORD)"]
+        env:
+        - name: FML_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: fml-secrets
+              key: FML_USERNAME
+        - name: FML_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fml-secrets
+              key: FML_PASSWORD
+        - name: FML_LISTEN_ADDRESS
+          value: ":5000"
+        - name: FML_DATABASE_URI
+          value: "sqlite:///data/fasttrackml.db"
+        volumeMounts:
+        - name: fml-data
+          mountPath: /data
+      volumes:
+      - name: fml-data
+        persistentVolumeClaim:
+          claimName: fml-pvc
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fml-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "fml-mcaq-me-tls"
+spec:
+  tls:
+  - hosts:
+      - fml.mcaq.me
+    secretName: fml-mcaq-me-tls
+  rules:
+  - host: fml.mcaq.me
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fml-service
+              port:
+                number: 5000
