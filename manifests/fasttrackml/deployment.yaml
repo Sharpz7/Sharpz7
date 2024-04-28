@@ -79,3 +79,17 @@ spec:
               name: fml-service
               port:
                 number: 5000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: fml-service
+spec:
+  selector:
+    app: fml
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
