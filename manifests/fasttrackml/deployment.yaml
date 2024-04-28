@@ -1,29 +1,13 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: fml-pv
-spec:
-  storageClassName: ""
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/volumes/fml"
-
----
-
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: fml-pvc
 spec:
-  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 8Gi
 
 ---
 
