@@ -1,0 +1,208 @@
+# app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maybe-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maybe-app
+  template:
+    metadata:
+      labels:
+        app: maybe-app
+    spec:
+      containers:
+        - name: maybe-app
+          image: ghcr.io/maybe-finance/maybe:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: SELF_HOSTED
+              value: "true"
+            - name: RAILS_FORCE_SSL
+              value: "false"
+            - name: RAILS_ASSUME_SSL
+              value: "false"
+            - name: GOOD_JOB_EXECUTION_MODE
+              value: "async"
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: maybe-secrets
+                  key: SECRET_KEY_BASE
+            - name: DB_HOST
+              value: maybe-postgres
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: maybe-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: maybe-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: maybe-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: app-storage
+              mountPath: /rails/storage
+      volumes:
+        - name: app-storage
+          persistentVolumeClaim:
+            claimName: app-storage-pvc
+
+---
+
+# postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maybe-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maybe-postgres
+  template:
+    metadata:
+      labels:
+        app: maybe-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: maybe-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: maybe-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: maybe-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data-pvc
+
+---
+
+# app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: maybe-app-service
+spec:
+  selector:
+    app: maybe-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+
+# postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: maybe-postgres
+spec:
+  selector:
+    app: maybe-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+
+# ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: maybe-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "maybe-mcaq-me-tls"
+spec:
+  tls:
+  - hosts:
+      - finance.mcaq.me
+    secretName: maybe-mcaq-me-tls
+  rules:
+  - host: finance.mcaq.me
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: maybe-app-service
+              port:
+                number: 3000
+
+---
+
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maybe-config
+data:
+  POSTGRES_USER: "maybe_user"
+  POSTGRES_DB: "maybe_production"
+
+---
+
+# pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-storage-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

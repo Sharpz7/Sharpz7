@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: fml
-        image: gresearch/fasttrackml
+        image: gresearch/fasttrackml:main
         command: ["fml", "server", "--auth-username", "$(FML_USERNAME)", "--auth-password", "$(FML_PASSWORD)"]
         env:
         - name: FML_USERNAME
@@ -35,15 +35,42 @@ spec:
             secretKeyRef:
               name: fml-secrets
               key: FML_USERNAME
+
         - name: FML_PASSWORD
           valueFrom:
             secretKeyRef:
               name: fml-secrets
               key: FML_PASSWORD
+
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: fml-secrets
+              key: AWS_ACCESS_KEY_ID
+
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fml-secrets
+              key: AWS_SECRET_ACCESS_KEY
+
+        - name: FML_S3_ENDPOINT_URI
+          value: "https://s3.mcaq.me"
+
+        - name: FML_ARTIFACT_ROOT
+          value: "s3://fml-artifacts"
+
+        - name: AWS_DEFAULT_REGION
+          value: "compute-us-1"
+
         - name: FML_LISTEN_ADDRESS
           value: ":5000"
         - name: FML_DATABASE_URI
           value: "sqlite:///data/fasttrackml.db"
+        - name: FML_LOG_LEVEL
+          value: "debug"
+
+
         volumeMounts:
         - name: fml-data
           mountPath: /data
@@ -93,3 +120,118 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
+
+
+# S3 Deployment
+# ===================================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: s3-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3-service
+spec:
+  selector:
+    app: s3
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3
+  template:
+    metadata:
+      labels:
+        app: s3
+    spec:
+      containers:
+        - name: s3
+          image: minio/minio:latest
+          args:
+            - server
+            - /data
+            - '--console-address=:9001'  # Specify the console address and port
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: MINIO_ROOT_USER
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: MINIO_ROOT_PASSWORD
+          ports:
+            - containerPort: 9000  # MinIO API port
+            - containerPort: 9001  # MinIO Console port
+          volumeMounts:
+            - name: s3-storage
+              mountPath: /data
+      volumes:
+        - name: s3-storage
+          persistentVolumeClaim:
+            claimName: s3-pvc
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: s3-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "s3-mcaq-me-tls"
+spec:
+  tls:
+  - hosts:
+      - s3.mcaq.me
+      - s3-console.mcaq.me
+    secretName: s3-mcaq-me-tls
+  rules:
+  - host: s3.mcaq.me
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: s3-service
+              port:
+                number: 9000
+  - host: s3-console.mcaq.me
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: s3-service
+              port:
+                number: 9001

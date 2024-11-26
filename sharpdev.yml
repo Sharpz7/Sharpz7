@@ -7,13 +7,13 @@ scripts:
     curl -fsSL https://coder.com/install.sh | sh
 
   login: |
-    sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-    sudo docker login docker.mcaq.me -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    docker login docker.mcaq.me -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
   image: |
     sharpdev login
-    sudo docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
-    sudo docker push sharp6292/coder-base
+    docker build --network=host -t sharp6292/coder-base -f dockerfiles/coder.Dockerfile .
+    docker push sharp6292/coder-base
 
     # docker build --network=host -t sharp6292/coder-gpu -f dockerfiles/gpu.Dockerfile .
     # docker push sharp6292/coder-gpu
@@ -42,3 +42,9 @@ scripts:
 
     # Use the variable in the coder template push command
     coder template push --var encoded_ssh_private_key="$ENCODED_SSH_PRIVATE_KEY"
+
+  minio-test: |
+    python3 ./env/minio-test.py
+
+  fml-test: |
+    python3 ./env/fml_test.py

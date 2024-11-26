@@ -3,13 +3,6 @@ FROM codercom/enterprise-base:ubuntu
 # general env
 ENV PATH /home/coder/.local/bin:$PATH
 
-# golang env
-ENV GOROOT /usr/local/go
-ENV GOPATH /home/coder/go
-ENV GOBIN $GOPATH/bin
-ENV PATH $PATH:$GOBIN
-ENV PATH $PATH:$GOROOT/bin
-
 # flutter
 ENV PATH $PATH:/home/coder/flutter/bin
 
@@ -37,6 +30,8 @@ RUN apt update &&\
     # Cleanup
     apt clean &&\
     rm -rf /var/lib/apt/lists/*
+
+ENV PATH /usr/local/go/bin:$PATH
 
 # Golang Install
 RUN curl -L "https://go.dev/dl/go1.20.11.linux-amd64.tar.gz" | tar -C /usr/local -xzvf - && \
