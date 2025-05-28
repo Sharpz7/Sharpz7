@@ -101,6 +101,7 @@ coder:
       enable: true
       # coder.ingress.tls.secretName -- The name of the TLS secret to use.
       secretName: "coder-${DOMAIN_NAME}-tls"
+      wildcardSecretName: "coder-wildcard-${DOMAIN_NAME}-tls"
 
   securityContext:
     runAsNonRoot: false
